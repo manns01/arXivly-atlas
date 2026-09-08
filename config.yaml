@@ -7,7 +7,7 @@
 # so any astro/hep bulletin you type into the site's filter box already has data
 # behind it. Add or remove archives here; the daily job picks it up on its next
 # run. Sub-categories (astro-ph.CO) also work if you want a narrow fetch.
-categories: [astro-ph, gr-qc, hep-ph, hep-th, hep-ex]
+categories: [astro-ph, gr-qc, hep-ph]
 announce_types: [new, cross]        # drop replace / replace-cross (~44% of a feed)
 
 # "all"      -> keep every new/cross paper in the categories above; `keywords`
