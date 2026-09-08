@@ -101,8 +101,11 @@ AI features (summarizing, idea brainstorming).
   are in `config.yaml` comments.
 - `atlas.window_days: 14` — could go to 21 if clusters still feel sparse; watch page/graph
   load time as the corpus grows.
-- Verify the keyword stop-list actually breaks the observed 17–20 paper mega-blob; if not,
-  also stop-list generic astro terms ("model", "mass", "constraint", …).
+- ~~Verify the keyword stop-list actually breaks the observed 17–20 paper mega-blob~~
+  **Confirmed 2026-09-08.** On the single 25-paper day: 5 clusters (max size 3 — the LZ
+  exothermic/inelastic-DM triplet), 14 unclustered, 9 edges. No mega-blob. The built-in
+  `_STOPWORDS` in `build_atlas.py` already also drops `model`/`mass`/`data`/`method`/`new`
+  etc. Retune thresholds once the rolling window has depth.
 - `dark matter` / `cosmology` keywords are broad in astro-ph.CO — `max_papers_per_day`
   may become the real limiter; scoring order matters more than the include filter.
 - `CLAUDE.md` mentions `PROGRESS_glowGRF.md` in places; the file in use is this one,
@@ -346,8 +349,15 @@ No scikit-learn, no networkx. d3 v7 vendored, not a pip dep.
 - [ ] 6. Minimal workflow + placeholder `docs/index.html`; run via `workflow_dispatch`;
       confirm artifact deploy works and `base_url` resolves at the real Pages URL —
       before the real templates exist.
-- [ ] 7. `build_atlas.py` — verify clusters/edges/labels on the window; tune `knn` /
-      `distance_threshold`.
+- [x] 7. `build_atlas.py` — verify clusters/edges/labels on the window; tune `knn` /
+      `distance_threshold`. *(2026-09-08: implemented — `load_window` (rolling window,
+      dedupe keep-earliest, `is_today` tag), hand-rolled TF-IDF (`tf·(log((N+1)/(df+1))+1)`,
+      L2 rows), cosine, `mutual_knn_edges` (mutual top-k AND cosine ≥ threshold),
+      `average_linkage` (Lance-Williams O(N²/merge), cut on `1−cos`, NOT graph
+      components), `label_cluster` (mean-TF-IDF inside − outside, top 4). Writes
+      git-ignored `data/derived/<pubdate>.json`. 0/1-paper guards return an empty atlas.
+      20 new unit tests (61 total pass). Thresholds unchanged from `config.yaml`
+      measured defaults — retune when the window fills.)*
 - [ ] 8. `templates/`, `generate_site.py`, `assets/` (CSS, `graph.js`, vendored d3) —
       open `docs/index.html` locally; check graph, links, collapsibles, "last updated".
 - [ ] 9. `build.py` orchestrator; wire real build into the workflow.
