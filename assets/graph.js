@@ -69,23 +69,36 @@
     });
 
   var tooltip = d3.select(mount).append("div").attr("class", "graph-tooltip");
+  var tipMaxW = parseFloat(getComputedStyle(tooltip.node()).maxWidth) || 352;
 
   function placeTooltip(event) {
-    // Put the tooltip next to the cursor, in pixels relative to #atlas-graph
-    // (its offset parent), flipping / clamping so overflow:hidden never clips it.
+    // Position the tooltip ~12px down-right of the cursor, in pixels relative to
+    // #atlas-graph (its offset parent). Flip to the other side only when that
+    // side actually fits, so a wide tooltip in a narrow box never gets slammed
+    // against an edge.
     var pad = 12;
     var tip = tooltip.node();
     var w = mount.clientWidth;
     var h = mount.clientHeight;
     var box = mount.getBoundingClientRect();
-    var px = event.clientX - box.left;
-    var py = event.clientY - box.top;
+
+    // Shrink to fit the box before measuring.
+    tip.style.maxWidth = Math.max(120, Math.min(tipMaxW, w - 2 * pad)) + "px";
+
+    // Cursor inside the padding box (getBoundingClientRect is the border box).
+    var px = event.clientX - box.left - mount.clientLeft;
+    var py = event.clientY - box.top - mount.clientTop;
+    var tw = tip.offsetWidth;
+    var th = tip.offsetHeight;
+
     var left = px + pad;
     var top = py + pad;
-    if (left + tip.offsetWidth + pad > w) left = px - tip.offsetWidth - pad;
-    if (top + tip.offsetHeight + pad > h) top = py - tip.offsetHeight - pad;
-    left = Math.max(4, Math.min(left, w - tip.offsetWidth - 4));
-    top = Math.max(4, Math.min(top, h - tip.offsetHeight - 4));
+    if (left + tw + pad > w && px - pad - tw >= 4) left = px - pad - tw;
+    if (top + th + pad > h && py - pad - th >= 4) top = py - pad - th;
+    if (tw && th) {
+      left = Math.max(4, Math.min(left, w - tw - 4));
+      top = Math.max(4, Math.min(top, h - th - 4));
+    }
     tooltip.style("left", left + "px").style("top", top + "px");
   }
 
