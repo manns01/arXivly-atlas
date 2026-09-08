@@ -40,41 +40,41 @@
   <details>
     <summary>
       Filters <span class="filter-count"></span>
-      <button type="button" class="filter-reset">reset</button>
+      <span class="filter-actions">
+        <button type="button" class="filter-save">save</button>
+        <button type="button" class="filter-clear">clear</button>
+      </span>
     </summary>
 
     <p class="filter-rule">
-      Shown = in the chosen window, in a listed category, not excluded, and
-      (no topic/author typed, or it matches a typed topic or author).
-      Everything is comma-separated free text.
+      All fields are comma-separated free text. A paper shows if it is in the
+      chosen window, in a typed category (or any, if blank), not excluded, and —
+      when Topics or Authors are set — matches one of them.
+      <strong>Save</strong> keeps your terms for next time (this browser only).
     </p>
 
     <div class="filter-body">
       <label class="filter-field">
         Topics <span class="hint">substring of title + abstract</span>
-        <input type="text" name="topics"
-               value="{{ filter_defaults.topics }}" data-default="{{ filter_defaults.topics }}"
+        <input type="text" name="topics" value=""
                placeholder="e.g. gravitational lensing, JWST">
       </label>
 
       <label class="filter-field">
         Authors <span class="hint">surname, or “Initial. Surname”</span>
-        <input type="text" name="authors"
-               value="{{ filter_defaults.authors }}" data-default="{{ filter_defaults.authors }}"
+        <input type="text" name="authors" value=""
                placeholder="e.g. Suyu, L. Dai">
       </label>
 
       <label class="filter-field">
         Categories <span class="hint">exact, or a whole archive (astro-ph)</span>
-        <input type="text" name="categories"
-               value="{{ filter_defaults.categories }}" data-default="{{ filter_defaults.categories }}"
+        <input type="text" name="categories" value=""
                placeholder="e.g. astro-ph.CO, gr-qc">
       </label>
 
       <label class="filter-field">
         Exclude <span class="hint">substring of title + abstract</span>
-        <input type="text" name="exclude"
-               value="{{ filter_defaults.exclude }}" data-default="{{ filter_defaults.exclude }}"
+        <input type="text" name="exclude" value=""
                placeholder="e.g. review, forecast">
       </label>
 
@@ -91,8 +91,12 @@
       </div>
     </div>
 
-    {% if suggest_categories or suggest_topics %}
     <div class="filter-suggest">
+      {% if has_site_defaults %}
+      <p class="chip-row"><span class="chip-lead">start from</span>
+        <button type="button" class="chip filter-load-defaults">the site’s topics &amp; authors</button>
+      </p>
+      {% endif %}
       {% if suggest_categories %}
       <p class="chip-row"><span class="chip-lead">in view:</span>
         {% for c, n in suggest_categories %}<button type="button" class="chip" data-field="categories" data-value="{{ c }}">{{ c }} <span class="chip-n">{{ n }}</span></button>{% endfor %}
@@ -104,7 +108,6 @@
       </p>
       {% endif %}
     </div>
-    {% endif %}
 
     <p class="filter-warn" hidden></p>
   </details>

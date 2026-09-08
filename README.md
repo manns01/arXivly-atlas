@@ -58,9 +58,9 @@ python -m unittest discover -s tests
 | `categories` | arXiv feeds to fetch. Whole archives (`astro-ph`) or sub-categories (`astro-ph.CO`) — an archive supersets its sub-categories. |
 | `announce_types` | Keep only these RSS announce types. Default `[new, cross]` (drops `replace` / `replace-cross`, ~44% of a feed). |
 | `filter_mode` | `all` — keep every `new`/`cross` paper in `categories`; `keywords`/`authors` only rank (scoring), seed the filter UI, and feed the stop-list. `keywords` — a paper must match a keyword or a priority author to appear at all. Use `all` with a broad `categories` net. |
-| `keywords` | Comma-joined into the site's **Topics** field as defaults. Also: case-insensitive substring for `score_paper` ranking, and (under `filter_mode: keywords`) the admission filter. `gravitational lensing` matches that phrase literally, not "lensing of gravitational waves". |
-| `exclude_keywords` | Seeds the **Exclude** field. A paper matching one (same substring rule) is dropped at fetch time regardless of `filter_mode`. |
-| `authors` | Seeds the **Authors** field. Matched on the **LaTeX/Unicode-normalized surname, exactly** (never a substring — `Hu` ≠ "Hubble"). Two forms: bare surname (`Suyu`) matches any first name; `Initial. Surname` (`L. Dai`) also requires the first initial. Particles stay with the surname: `van der Bij`, not `Bij`. |
+| `keywords` | Case-insensitive substring for `score_paper` ranking, and (under `filter_mode: keywords`) the admission filter. Also the "start from the site's topics & authors" button on the page and the TF-IDF stop-list. **Not** pre-filled into the Topics field. `gravitational lensing` matches that phrase literally, not "lensing of gravitational waves". |
+| `exclude_keywords` | A paper matching one (same substring rule) is dropped at fetch time regardless of `filter_mode`. Also feeds the page's "start from" button. |
+| `authors` | Priority ("★ starred") authors — a card badge and the "starred authors only" toggle, plus `author_bonus` in scoring and the "start from" button. Matched on the **LaTeX/Unicode-normalized surname, exactly** (never a substring — `Hu` ≠ "Hubble"). Two forms: bare surname (`Suyu`) matches any first name; `Initial. Surname` (`L. Dai`) also requires the first initial. Particles stay with the surname: `van der Bij`, not `Bij`. |
 | `scoring` | `title_weight` · (keyword hits in title) + `abstract_weight` · (hits in abstract) + `author_bonus` · (matched priority authors). Sets card order and the window cap's keep-order. |
 | `similarity.knn` | Visual graph: each node keeps its top-k neighbours; an edge is drawn only if the link is **mutual** and cosine ≥ `edge_threshold`. |
 | `similarity.edge_threshold` | Minimum cosine for a drawn edge (measured max pair ≈ 0.23, median ≈ 0.03 on one day). |
@@ -94,9 +94,9 @@ over whole archives) means the browser can filter to almost anything; a narrow
 net can't be widened from the browser.
 
 **The view** (the Filters panel, runs per keystroke). Four comma-separated text
-fields — **Topics**, **Authors**, **Categories**, **Exclude** — seeded from
-`config.yaml` but fully editable, plus a **★ starred authors only** toggle and a
-window selector. A paper is shown when:
+fields — **Topics**, **Authors**, **Categories**, **Exclude** — that **start
+empty**, plus a **★ starred authors only** toggle and a window selector. A paper
+is shown when:
 
 ```
 in the chosen day window
@@ -114,10 +114,13 @@ LaTeX+Unicode-normalized (`Mu\~{n}oz` → `munoz`); a typed query is only
 Unicode-normalized (`Kühnel` → `kuhnel`), since you type plain text, not LaTeX.
 Surname is exact, initial checked only if you give one (`L. Dai` vs `Dai`).
 
-The view state lives in the URL hash and `localStorage`, so a filtered view is
-bookmarkable. **Reset** restores the `config.yaml` defaults; clearing the fields
-by hand is the "show everything" state. With JavaScript off, the panel stays
-hidden and every paper renders.
+The URL hash always mirrors the current view, so a filtered view is
+bookmarkable and survives a reload. **Save** writes your terms to `localStorage`
+(this browser only) so they come back on your next visit; **clear** empties the
+fields; **start from the site's topics & authors** fills them from `config.yaml`
+(the `keywords` / `authors` / `categories` lists) as a starting point to edit.
+On load the order is: URL hash → your saved terms → empty. With JavaScript off,
+the panel stays hidden and every paper renders.
 
 Typing a category that isn't in the current window shows a hint pointing at
 `config.yaml` (with a link when `site.repo_url` is set).

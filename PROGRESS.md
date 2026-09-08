@@ -21,6 +21,21 @@ AI features (summarizing, idea brainstorming).
   critic against live arXiv (two passes; the second measured the whole pipeline on the
   Mon 7 Sep 2026 announcement day), plan revised and saved below. User will continue in
   the afternoon.
+- **2026-09-08 (deploy + iterate)** — Live at **https://manns01.github.io/arXivly-atlas/**.
+  Repo `manns01/arXivly-atlas` (public) created via the GitHub API using the keychain PAT;
+  pushed `main`; set Actions workflow perms = write; Pages source = GitHub Actions;
+  dispatched `daily-arxiv` (run #1 build+deploy green). `site.repo_url` set in config.
+  Then, on user feedback, reworked the filter UX: **fields no longer seeded from
+  config.yaml** — all four start empty so a new visitor types their own. Added **Save**
+  (persists current terms to `localStorage`, this browser only) and **clear**; a
+  "start from the site's topics & authors" chip fills the fields from
+  `config.yaml` for editing. URL hash still auto-mirrors the view (shareable,
+  reload-safe); load order hash → saved → empty. Dropped the `v=1`/`data-default`
+  cleared-vs-absent machinery (no longer needed without seeding). `STORE_KEY` → `:3`.
+  Blob carries `site_defaults`; `has_site_defaults` gates the button. 80 tests pass.
+  Also fixed: reset/clear now `preventDefault`+`stopPropagation` so the `<details>`
+  doesn't toggle, and clears the debounce. (User separately added Nirmal Raj / Ranjan
+  Laha to `config.yaml` authors.)
 - **2026-09-08 (latest)** — Free-form filters + broad fetch net (plan:
   `~/.claude/plans/glittery-inventing-boole.md`). **80 unit tests pass.**
   - **Rejected browser-side live arXiv queries**: `curl` with an `Origin` header shows

@@ -5,7 +5,11 @@
    re-clusters — the corpus and the clusters are fixed at build time; the
    browser can only narrow within what the daily job already fetched.
 
-   All four fields are comma-separated free text, seeded from config.yaml.
+   All four fields are comma-separated free text and start EMPTY. A first-time
+   visitor sees every paper and types their own terms. "Save" persists the
+   current terms to localStorage (this browser only); "clear" empties the
+   fields; "start from the site's topics & authors" fills them from the
+   maintainer's config for editing.
 
    show(paper) =
          paper.first_pubdate is inside the chosen window
@@ -21,10 +25,8 @@
    LaTeX/Unicode-normalized from Python (node.au); only the typed query is
    normalized here (Unicode accents only — users type plain text, not LaTeX).
 
-   State is mirrored to the URL hash and localStorage. Because config.yaml seeds
-   the fields, a saved state must distinguish "user cleared Topics" from "no
-   saved state": a "v=1" marker is written whenever any field differs from its
-   data-default, and only the differing fields are stored.
+   The URL hash always mirrors the current view (shareable, reload-safe).
+   localStorage is written only by Save. On load: hash > saved > empty.
 */
 (function () {
   "use strict";
@@ -42,7 +44,7 @@
   var days = (data.days || []).slice();              // newest first
   var corpus = (data.corpus_categories || []).map(function (c) { return c.toLowerCase(); });
 
-  var STORE_KEY = "arxivly-atlas:filters:2";
+  var STORE_KEY = "arxivly-atlas:filters:3";
   var FIELDS = ["topics", "authors", "categories", "exclude"];
 
   // Name particles that belong with the surname -- mirror of
@@ -66,9 +68,10 @@
   FIELDS.forEach(function (k) { inputs[k] = panel.querySelector('input[name="' + k + '"]'); });
   var prioBox = panel.querySelector('input[name="priority-only"]');
   var winSelect = panel.querySelector('select[name="window"]');
-  var resetBtn = panel.querySelector(".filter-reset");
   var countEl = panel.querySelector(".filter-count");
   var warnEl = panel.querySelector(".filter-warn");
+  var saveBtn = panel.querySelector(".filter-save");
+  var siteDefaults = data.site_defaults || {};
 
   var cards = toArray(document.querySelectorAll(".clusters .paper"));
   var clusterEls = toArray(document.querySelectorAll(".clusters .cluster"));
@@ -79,9 +82,7 @@
 
   panel.hidden = false;
 
-  function fieldDefault(k) {
-    return (inputs[k] && inputs[k].dataset.default) || "";
-  }
+  var KNOWN = FIELDS.concat(["prio", "win"]);
 
   // --- state <-> controls ----------------------------------------------
   function readControls() {
@@ -100,43 +101,57 @@
 
   function stateToQuery(s) {
     var p = new URLSearchParams();
-    FIELDS.forEach(function (k) {
-      if ((s[k] || "") !== fieldDefault(k)) p.set(k, s[k] || "");
-    });
+    FIELDS.forEach(function (k) { if (s[k]) p.set(k, s[k]); });
     if (s.prio) p.set("prio", "1");
     if (s.win && s.win !== "0") p.set("win", s.win);
-    var q = p.toString();
-    return q ? "v=1&" + q : "";
+    return p.toString();
   }
 
   function queryToState(q) {
     var p = new URLSearchParams(q);
     var s = {};
-    FIELDS.forEach(function (k) { s[k] = p.has(k) ? p.get(k) : fieldDefault(k); });
+    FIELDS.forEach(function (k) { s[k] = p.get(k) || ""; });
     s.prio = p.get("prio") === "1";
     s.win = p.get("win") || "0";
     return s;
   }
 
-  function loadState() {
-    var hp = new URLSearchParams(location.hash.replace(/^#/, ""));
-    if (hp.get("v")) return queryToState(hp.toString());
-    try {
-      var saved = localStorage.getItem(STORE_KEY);
-      if (saved && new URLSearchParams(saved).get("v")) return queryToState(saved);
-    } catch (e) { /* private mode */ }
-    return queryToState("");                 // all config defaults
+  function hasAny(q) {
+    var p = new URLSearchParams(q);
+    return KNOWN.some(function (k) { return p.has(k); });
   }
 
-  function persist(s) {
+  // Empty fields on a fresh visit. URL hash (shared link) wins; then whatever
+  // the visitor last chose to Save in this browser; else nothing.
+  function loadState() {
+    var h = location.hash.replace(/^#/, "");
+    if (hasAny(h)) return queryToState(h);
+    try {
+      var saved = localStorage.getItem(STORE_KEY);
+      if (saved && hasAny(saved)) return queryToState(saved);
+    } catch (e) { /* private mode */ }
+    return queryToState("");
+  }
+
+  // Keep the URL in sync so a view is shareable / survives reload; localStorage
+  // is only written by the Save button.
+  function syncHash(s) {
     var q = stateToQuery(s);
     try {
       history.replaceState(null, "", q ? "#" + q : location.pathname + location.search);
     } catch (e) { /* file:// */ }
+  }
+
+  function saveState() {
+    var q = stateToQuery(readControls());
     try {
       if (q) localStorage.setItem(STORE_KEY, q);
       else localStorage.removeItem(STORE_KEY);
     } catch (e) { /* private mode */ }
+    if (saveBtn) {
+      saveBtn.textContent = "saved ✓";
+      setTimeout(function () { saveBtn.textContent = "save"; }, 1500);
+    }
   }
 
   // --- matching helpers ------------------------------------------------
@@ -247,7 +262,7 @@
     }
 
     updateWarn(catTerms);
-    persist(s);
+    syncHash(s);
   }
 
   function updateWarn(catTerms) {
@@ -285,9 +300,35 @@
   panel.addEventListener("change", function (e) {
     if (e.target.type !== "text") apply();
   });
+  function stop(e) { e.preventDefault(); e.stopPropagation(); clearTimeout(debounce); }
+
   panel.addEventListener("click", function (e) {
-    var chip = e.target.closest && e.target.closest(".chip");
-    if (chip) {
+    var el = e.target.closest ? e.target : e.target.parentElement;
+    if (!el) return;
+
+    if (el.closest(".filter-save")) { stop(e); saveState(); return; }
+
+    if (el.closest(".filter-clear")) {
+      stop(e);
+      writeControls({ topics: "", authors: "", categories: "", exclude: "",
+                      prio: false, win: "0" });
+      apply();
+      return;
+    }
+
+    if (el.closest(".filter-load-defaults")) {
+      stop(e);
+      writeControls({
+        topics: siteDefaults.topics || "", authors: siteDefaults.authors || "",
+        categories: siteDefaults.categories || "", exclude: siteDefaults.exclude || "",
+        prio: false, win: "0"
+      });
+      apply();
+      return;
+    }
+
+    var chip = el.closest(".chip");
+    if (chip && chip.dataset.field) {
       var field = inputs[chip.dataset.field];
       var val = chip.dataset.value;
       if (field && val) {
@@ -298,12 +339,6 @@
           apply();
         }
       }
-      return;
-    }
-    if (e.target === resetBtn) {
-      e.preventDefault();
-      writeControls(queryToState(""));
-      apply();
     }
   });
 

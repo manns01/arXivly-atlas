@@ -123,8 +123,8 @@ main {
   gap: 0.6rem;
 }
 .filters .filter-count { color: var(--muted); font-weight: 400; font-size: 0.85rem; }
-.filters .filter-reset {
-  margin-left: auto;
+.filters .filter-actions { margin-left: auto; display: flex; gap: 0.4rem; }
+.filters .filter-actions button {
   font: inherit;
   font-size: 0.8rem;
   color: var(--accent);
@@ -134,6 +134,8 @@ main {
   padding: 0.1rem 0.5rem;
   cursor: pointer;
 }
+.filters .filter-actions button:hover { border-color: var(--accent); }
+.chip.filter-load-defaults { color: var(--accent); border-color: var(--accent); }
 .filter-rule {
   margin: 0;
   padding: 0.5rem 0.9rem 0;

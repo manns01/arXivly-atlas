@@ -123,6 +123,10 @@ class RenderSite(unittest.TestCase):
         self.assertIn("corpus_categories", obj)
         self.assertIn("astro-ph.CO", obj["corpus_categories"])
         self.assertEqual(obj["repo_url"], "")
+        # the maintainer's config set travels for the "use site defaults" button,
+        # NOT pre-filled into the fields
+        self.assertEqual(obj["site_defaults"]["topics"], "dark matter, cosmology")
+        self.assertEqual(obj["site_defaults"]["categories"], "astro-ph.CO")
         for n in obj["nodes"]:
             for key in ("text", "au", "starred", "categories", "keywords",
                         "priority", "first_pubdate", "announce_type"):
@@ -141,10 +145,15 @@ class RenderSite(unittest.TestCase):
             self.assertEqual(idx.count('name="%s"' % f), 1, f)
         self.assertEqual(idx.count('name="cat"'), 0)
         self.assertEqual(idx.count('name="kw"'), 0)
-        # config values seed the fields (value= and data-default=)
-        self.assertIn('value="dark matter, cosmology"', idx)
-        self.assertIn('data-default="dark matter, cosmology"', idx)
-        self.assertIn('value="astro-ph.CO"', idx)
+        # fields start EMPTY, no data-default, config is not pre-filled
+        self.assertIn('name="topics" value=""', idx)
+        self.assertIn('name="categories" value=""', idx)
+        self.assertNotIn('data-default=', idx)
+        self.assertNotIn('value="dark matter, cosmology"', idx)
+        # save / clear / load-defaults affordances
+        self.assertIn('class="filter-save"', idx)
+        self.assertIn('class="filter-clear"', idx)
+        self.assertIn('filter-load-defaults', idx)
         self.assertIn('name="priority-only"', idx)
         self.assertIn('name="window"', idx)
         self.assertIn('class="filter-warn"', idx)
