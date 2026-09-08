@@ -70,19 +70,34 @@
 
   var tooltip = d3.select(mount).append("div").attr("class", "graph-tooltip");
 
+  function placeTooltip(event) {
+    // Put the tooltip next to the cursor, in pixels relative to #atlas-graph
+    // (its offset parent), flipping / clamping so overflow:hidden never clips it.
+    var pad = 12;
+    var tip = tooltip.node();
+    var w = mount.clientWidth;
+    var h = mount.clientHeight;
+    var box = mount.getBoundingClientRect();
+    var px = event.clientX - box.left;
+    var py = event.clientY - box.top;
+    var left = px + pad;
+    var top = py + pad;
+    if (left + tip.offsetWidth + pad > w) left = px - tip.offsetWidth - pad;
+    if (top + tip.offsetHeight + pad > h) top = py - tip.offsetHeight - pad;
+    left = Math.max(4, Math.min(left, w - tip.offsetWidth - 4));
+    top = Math.max(4, Math.min(top, h - tip.offsetHeight - 4));
+    tooltip.style("left", left + "px").style("top", top + "px");
+  }
+
   node
     .on("mouseover", function (event, d) {
       tooltip.style("opacity", 1)
         .html("<strong>" + escapeHtml(d.title) + "</strong><br>" +
               escapeHtml(d.primary_category || "") +
               (d.is_today ? " · today" : ""));
+      placeTooltip(event);
     })
-    .on("mousemove", function (event) {
-      var box = mount.getBoundingClientRect();
-      tooltip
-        .style("left", (event.clientX - box.left + 12) + "px")
-        .style("top", (event.clientY - box.top + 12) + "px");
-    })
+    .on("mousemove", placeTooltip)
     .on("mouseout", function () { tooltip.style("opacity", 0); })
     .on("click", function (event, d) {
       var card = document.getElementById("paper-" + d.id);

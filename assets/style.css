@@ -76,6 +76,7 @@ main {
 .atlas h2 { margin-bottom: 0.3rem; }
 .atlas-hint { margin: 0 0 0.6rem; color: var(--muted); font-size: 0.85rem; }
 #atlas-graph {
+  position: relative;   /* offset parent for .graph-tooltip */
   width: 100%;
   height: 520px;
   border: 1px solid var(--border);
