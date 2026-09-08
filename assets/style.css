@@ -134,26 +134,20 @@ main {
   padding: 0.1rem 0.5rem;
   cursor: pointer;
 }
-.filter-body {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem 1.5rem;
-  padding: 0.4rem 0.9rem 0.9rem;
-  border-top: 1px solid var(--border);
+.filter-rule {
+  margin: 0;
+  padding: 0.5rem 0.9rem 0;
+  font-size: 0.8rem;
+  color: var(--muted);
 }
-.filter-group { border: 0; margin: 0; padding: 0; min-width: 12rem; }
-.filter-group legend { font-size: 0.8rem; color: var(--muted); padding: 0; margin-bottom: 0.3rem; }
-.filter-group .hint { font-weight: 400; font-size: 0.75rem; color: var(--muted); }
-.filter-cats label,
-.filter-kws label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.82rem;
-  margin: 0.15rem 0.7rem 0.15rem 0;
-  white-space: nowrap;
+.filter-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem 1.5rem;
+  padding: 0.6rem 0.9rem 0.9rem;
 }
 .filter-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: var(--muted); }
+.filter-field .hint { font-size: 0.72rem; }
 .filter-field input[type="text"],
 .filter-field select {
   font: inherit;
@@ -162,13 +156,41 @@ main {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 5px;
-  padding: 0.25rem 0.4rem;
+  padding: 0.3rem 0.45rem;
+  width: 100%;
 }
-.filter-text { display: flex; flex-direction: column; gap: 0.5rem; flex: 1 1 16rem; }
-.filter-misc { display: flex; flex-direction: column; gap: 0.5rem; }
-.filter-misc > label { font-size: 0.82rem; }
+.filter-misc { display: flex; flex-direction: column; gap: 0.5rem; justify-content: flex-end; }
+.filter-misc > label { font-size: 0.82rem; color: var(--fg); }
+
+.filter-suggest { padding: 0 0.9rem 0.6rem; }
+.chip-row { margin: 0.3rem 0 0; display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
+.chip-lead { font-size: 0.72rem; color: var(--muted); margin-right: 0.15rem; }
+.chip {
+  font: inherit;
+  font-size: 0.74rem;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  cursor: pointer;
+}
+.chip:hover { color: var(--accent); border-color: var(--accent); }
+.chip .chip-n { color: var(--muted); opacity: 0.7; }
+
+.filter-warn {
+  margin: 0;
+  padding: 0.5rem 0.9rem 0.8rem;
+  font-size: 0.8rem;
+  color: var(--ring);
+}
+.filter-warn a { color: var(--ring); text-decoration: underline; }
 
 .paper[hidden], .cluster[hidden] { display: none; }
+
+@media (max-width: 34rem) {
+  .filter-body { grid-template-columns: 1fr; }
+}
 
 /* --- clusters + cards --- */
 .clusters h2 { margin: 1.5rem 0 0.5rem; }

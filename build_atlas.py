@@ -32,8 +32,9 @@ DEFAULTS = {
     "edge_threshold": 0.08,
     "distance_threshold": 0.92,
     "min_cluster_size": 2,
-    "stoplist_keywords": True,
-    "window_days": 14,
+    "stoplist_keywords": None,   # None -> follow filter_mode (see build_atlas())
+    "window_days": 5,
+    "max_window_papers": 400,
 }
 
 _TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
@@ -63,12 +64,18 @@ def raw_files(raw_dir: Path = RAW_DIR) -> list[Path]:
     return sorted(p for p in Path(raw_dir).glob("*.json") if p.stat().st_size > 0)
 
 
-def load_window_files(window: list[Path]) -> tuple[str, list[dict]]:
+def load_window_files(window: list[Path],
+                      max_papers: int | None = None) -> tuple[str, list[dict]]:
     """Dedupe papers across an explicit, chronologically ordered list of raw
     files (keep the earliest appearance), tag each ``is_today`` if it is in the
     last file, and return ``(pubdate_of_last_file, papers)``.
 
     ``([])`` in -> ``("", [])`` out.
+
+    ``max_papers`` caps the corpus (page size, clustering cost, graph size). The
+    cap is applied after the today-first / score-desc / id sort and **never drops
+    an ``is_today`` paper** -- today's list stays complete; only the older
+    context window is trimmed, keeping the highest-scored papers.
     """
     if not window:
         return "", []
@@ -89,14 +96,19 @@ def load_window_files(window: list[Path]) -> tuple[str, list[dict]]:
         paper["is_today"] = paper["id"] in today_ids
     # Today's papers first, then by score, then id -- stable, deterministic order.
     papers.sort(key=lambda p: (not p["is_today"], -p.get("score", 0), p["id"]))
+
+    if max_papers is not None and len(papers) > max_papers:
+        today = [p for p in papers if p["is_today"]]
+        older = [p for p in papers if not p["is_today"]]
+        papers = today + older[:max(0, max_papers - len(today))]
     return today_pubdate, papers
 
 
-def load_window(raw_dir: Path = RAW_DIR, window_days: int = DEFAULTS["window_days"]
-                ) -> tuple[str, list[dict]]:
+def load_window(raw_dir: Path = RAW_DIR, window_days: int = DEFAULTS["window_days"],
+                max_papers: int | None = None) -> tuple[str, list[dict]]:
     """Load the newest ``data/raw/*.json`` plus up to ``window_days - 1`` earlier
     files. See :func:`load_window_files`."""
-    return load_window_files(raw_files(raw_dir)[-window_days:])
+    return load_window_files(raw_files(raw_dir)[-window_days:], max_papers)
 
 
 # --- TF-IDF ----------------------------------------------------------------
@@ -241,10 +253,13 @@ def build_atlas(papers: list[dict], config: dict) -> dict:
     if len(papers) < 2:
         return _empty_atlas(pubdate, papers)
 
-    extra_stop = (
-        _keyword_stopwords(config.get("keywords") or [])
-        if sim.get("stoplist_keywords", True) else set()
-    )
+    # Stop-list the configured keywords only when they saturate the corpus --
+    # true under filter_mode: keywords, false under filter_mode: all (there they
+    # are discriminative). An explicit similarity.stoplist_keywords wins.
+    stoplist = sim.get("stoplist_keywords")
+    if stoplist is None:
+        stoplist = config.get("filter_mode", "keywords") == "keywords"
+    extra_stop = _keyword_stopwords(config.get("keywords") or []) if stoplist else set()
     docs = [tokenize(f"{p['title']} {p.get('abstract', '')}", extra_stop) for p in papers]
     tfidf, vocab = tfidf_matrix(docs)
 
@@ -312,8 +327,10 @@ def _load_config() -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     config = _load_config()
-    window_days = int((config.get("atlas") or {}).get("window_days", DEFAULTS["window_days"]))
-    pubdate, papers = load_window(RAW_DIR, window_days)
+    atlas_cfg = config.get("atlas") or {}
+    window_days = int(atlas_cfg.get("window_days", DEFAULTS["window_days"]))
+    max_window = atlas_cfg.get("max_window_papers", DEFAULTS["max_window_papers"])
+    pubdate, papers = load_window(RAW_DIR, window_days, max_window)
     if not pubdate:
         print("no data/raw/*.json files -- run fetch_arxiv.py first", file=sys.stderr)
         return 1

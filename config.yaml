@@ -3,10 +3,21 @@
 # points from the 2026-09-07 planning measurement; retune after the rolling
 # window has real depth.
 
-categories: [astro-ph.CO, astro-ph.HE, gr-qc, hep-ph]
+# Whole archives, not sub-categories -- "astro-ph" pulls the entire astro feed,
+# so any astro/hep bulletin you type into the site's filter box already has data
+# behind it. Add or remove archives here; the daily job picks it up on its next
+# run. Sub-categories (astro-ph.CO) also work if you want a narrow fetch.
+categories: [astro-ph, gr-qc, hep-ph, hep-th, hep-ex]
 announce_types: [new, cross]        # drop replace / replace-cross (~44% of a feed)
 
+# "all"      -> keep every new/cross paper in the categories above; `keywords`
+#               and `authors` only rank (scoring), seed the filter UI, and feed
+#               the TF-IDF stop-list. Best with a broad `categories` net.
+# "keywords" -> a paper must match a keyword or a priority author to appear at all.
+filter_mode: all
+
 keywords:                            # plain case-insensitive substring on title+abstract
+                                     # under filter_mode: all these only rank + seed the UI fields
   - gravitational lensing
   - wave optics
   - microlensing
@@ -81,12 +92,19 @@ similarity:
   edge_threshold: 0.08              # ... AND cosine >= this (measured: max pair ~0.23)
   distance_threshold: 0.92          # clusters: agglomerative cut on 1 - cosine
   min_cluster_size: 2               # smaller clusters fall into "Unclustered"
-  stoplist_keywords: true           # add config.keywords to the TF-IDF stop-list
+  # add config.keywords to the TF-IDF stop-list. Left unset it follows
+  # filter_mode: on for "keywords" (they saturate that corpus), off for "all"
+  # (they are discriminative there). Set true/false to override.
+  # stoplist_keywords: false
 
 atlas:
-  window_days: 14                   # single-day corpus is too small to connect
+  window_days: 5                    # broad net -> short window; 5d x ~160/day
+  max_window_papers: 400            # hard cap on the window corpus; today's papers are never dropped
 
 site:
   title: arXivly-atlas
   base_url: /arXivly-atlas           # "" for a user/organization site or custom domain
-  max_papers_per_day: 100
+  repo_url: ""                       # e.g. https://github.com/you/arXivly-atlas -- used by the
+                                     # "unknown category" hint; hint shows text-only when blank
+  match_chars: 800                   # chars of abstract embedded per paper for in-browser filtering
+  max_papers_per_day: 200            # >= typical daily volume, so today is never truncated

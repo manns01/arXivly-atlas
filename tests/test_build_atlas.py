@@ -12,6 +12,7 @@ from build_atlas import (
     build_atlas,
     label_cluster,
     load_window,
+    load_window_files,
     mutual_knn_edges,
     tfidf_matrix,
     tokenize,
@@ -65,6 +66,38 @@ class LoadWindow(unittest.TestCase):
     def test_empty_dir(self):
         with tempfile.TemporaryDirectory() as d:
             self.assertEqual(load_window(Path(d), 14), ("", []))
+
+    def test_max_papers_caps_older_but_keeps_all_of_today(self):
+        with tempfile.TemporaryDirectory() as d:
+            raw = Path(d)
+            _write_day(raw / "2026-09-01.json", "2026-09-01",
+                       [{"id": f"old{i}", "title": "t", "abstract": "",
+                         "score": i} for i in range(20)])
+            _write_day(raw / "2026-09-02.json", "2026-09-02",
+                       [{"id": f"new{i}", "title": "t", "abstract": "",
+                         "score": 0} for i in range(8)])
+            pubdate, papers = load_window_files(
+                sorted(raw.glob("*.json")), max_papers=10)
+        self.assertEqual(pubdate, "2026-09-02")
+        self.assertEqual(len(papers), 10)
+        today = [p for p in papers if p["is_today"]]
+        older = [p for p in papers if not p["is_today"]]
+        self.assertEqual(len(today), 8)                 # every today paper kept
+        self.assertEqual(len(older), 2)                 # only room for 2 older
+        self.assertEqual({p["id"] for p in older}, {"old19", "old18"})  # highest score
+
+    def test_max_papers_keeps_all_of_today_even_when_today_exceeds_cap(self):
+        with tempfile.TemporaryDirectory() as d:
+            raw = Path(d)
+            _write_day(raw / "2026-09-01.json", "2026-09-01",
+                       [{"id": f"old{i}", "title": "t", "abstract": "", "score": 9}
+                        for i in range(5)])
+            _write_day(raw / "2026-09-02.json", "2026-09-02",
+                       [{"id": f"new{i}", "title": "t", "abstract": "", "score": 0}
+                        for i in range(12)])
+            _, papers = load_window_files(sorted(raw.glob("*.json")), max_papers=6)
+        self.assertEqual(len(papers), 12)              # today alone > cap -> all today, no older
+        self.assertTrue(all(p["is_today"] for p in papers))
 
 
 class Tokenize(unittest.TestCase):

@@ -43,7 +43,7 @@ _USER_AGENT = "arXivly-atlas/0.1 (+https://github.com/; personal arXiv digest)"
 # --- network ---------------------------------------------------------------
 
 def fetch_feed(cat: str, *, retries: int = 2, backoff: float = 2.0,
-               timeout: int = 30) -> bytes:
+               timeout: int = 60) -> bytes:
     """GET one category feed, retrying on transport/HTTP errors. Raises on
     final failure so the caller can fail closed (write nothing)."""
     import requests
@@ -157,18 +157,26 @@ def _kw_hits(text: str, keywords: list[str]) -> list[str]:
 
 def filter_papers(items: list[dict], *, keywords: list[str],
                   exclude_keywords: list[str],
-                  author_surnames: list[str]) -> list[dict]:
-    """Keep a paper if any keyword is a substring of title+abstract
-    (case-insensitive) OR any configured author spec matches one of its authors;
-    drop it if any exclude keyword matches. Empty keywords AND empty authors ->
-    keep all (still honouring excludes).
+                  author_surnames: list[str],
+                  mode: str = "keywords") -> list[dict]:
+    """Filter merged feed items, tagging every survivor with ``matched_keywords``
+    and ``matched_authors`` (used later for scoring and the site's filter UI).
+
+    ``mode="keywords"`` (default): a paper is kept only if a keyword is a
+    substring of title+abstract (case-insensitive) OR a configured author spec
+    matches one of its authors. Empty keywords AND empty authors -> keep all.
+
+    ``mode="all"``: every paper is kept; the keyword/author match lists are still
+    populated for downstream ranking and UI seeding.
+
+    Either way, a paper matching an ``exclude_keywords`` term is dropped.
 
     An ``authors:`` entry is either a bare surname (``Suyu`` -- any first name) or
     ``Initial. Surname`` / ``Firstname Surname`` (``L. Dai`` -- first initial must
     also match), disambiguating common surnames.
     """
     author_specs = [(s, author_spec_key(s)) for s in author_surnames if s.strip()]
-    keep_all = not keywords and not author_specs
+    keep_all = mode == "all" or (not keywords and not author_specs)
     kept = []
     for it in items:
         haystack = f"{it['title']} {it['abstract']}"
@@ -179,9 +187,9 @@ def filter_papers(items: list[dict], *, keywords: list[str],
             key[1] for _, key in author_specs
             if author_spec_matches(it["author_keys"], key)
         })
+        it["matched_keywords"] = matched_kw
+        it["matched_authors"] = matched_auth
         if keep_all or matched_kw or matched_auth:
-            it["matched_keywords"] = matched_kw
-            it["matched_authors"] = matched_auth
             kept.append(it)
     return kept
 
@@ -209,6 +217,7 @@ def build_day(parsed_feeds: list[tuple[str, list[dict]]], config: dict) -> dict:
         keywords=config.get("keywords", []),
         exclude_keywords=config.get("exclude_keywords", []),
         author_surnames=config.get("authors", []),
+        mode=config.get("filter_mode", "keywords"),
     )
     scoring = config.get("scoring", {})
     for it in kept:

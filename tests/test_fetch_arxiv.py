@@ -126,6 +126,33 @@ class FilterAndScore(unittest.TestCase):
                              author_surnames=[])
         self.assertEqual(len(kept), len(merged))
 
+    def test_mode_all_keeps_unmatched_but_still_tags(self):
+        feeds = load_parsed()
+        _, merged = merge_feeds(feeds, CATEGORIES, ["new", "cross"])
+        gated = filter_papers([dict(p) for p in merged], keywords=SEED_KEYWORDS,
+                              exclude_keywords=[], author_surnames=[])
+        allkept = filter_papers([dict(p) for p in merged], keywords=SEED_KEYWORDS,
+                                exclude_keywords=[], author_surnames=[], mode="all")
+        self.assertEqual(len(allkept), len(merged))       # nothing dropped
+        self.assertGreater(len(allkept), len(gated))
+        # match lists are still populated for scoring / the UI
+        self.assertTrue(all("matched_keywords" in p and "matched_authors" in p
+                            for p in allkept))
+        self.assertTrue(any(p["matched_keywords"] for p in allkept))
+        self.assertTrue(any(not p["matched_keywords"] and not p["matched_authors"]
+                            for p in allkept))
+
+    def test_mode_all_still_honours_excludes(self):
+        feeds = load_parsed()
+        _, merged = merge_feeds(feeds, CATEGORIES, ["new", "cross"])
+        allkept = filter_papers([dict(p) for p in merged], keywords=[],
+                                exclude_keywords=["dark matter"],
+                                author_surnames=[], mode="all")
+        self.assertLess(len(allkept), len(merged))
+        for p in allkept:
+            self.assertNotIn("dark matter",
+                             f"{p['title']} {p['abstract']}".lower())
+
     def test_author_surname_exact_not_substring(self):
         feeds = load_parsed()
         _, merged = merge_feeds(feeds, CATEGORIES, ["new", "cross"])

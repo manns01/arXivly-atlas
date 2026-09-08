@@ -37,52 +37,76 @@
 
 {% if atlas.nodes %}
 <section class="filters" hidden aria-label="View filters">
-  <details open>
+  <details>
     <summary>
       Filters <span class="filter-count"></span>
       <button type="button" class="filter-reset">reset</button>
     </summary>
 
+    <p class="filter-rule">
+      Shown = in the chosen window, in a listed category, not excluded, and
+      (no topic/author typed, or it matches a typed topic or author).
+      Everything is comma-separated free text.
+    </p>
+
     <div class="filter-body">
-      <fieldset class="filter-group filter-cats">
-        <legend>Categories</legend>
-        {% for c in filter_categories %}
-        <label><input type="checkbox" name="cat" value="{{ c }}" checked> {{ c }}</label>
-        {% endfor %}
-      </fieldset>
+      <label class="filter-field">
+        Topics <span class="hint">substring of title + abstract</span>
+        <input type="text" name="topics"
+               value="{{ filter_defaults.topics }}" data-default="{{ filter_defaults.topics }}"
+               placeholder="e.g. gravitational lensing, JWST">
+      </label>
 
-      {% if filter_keywords %}
-      <fieldset class="filter-group filter-kws">
-        <legend>Topics <span class="hint">(match any)</span></legend>
-        {% for k in filter_keywords %}
-        <label><input type="checkbox" name="kw" value="{{ k }}" checked> {{ k }}</label>
-        {% endfor %}
-      </fieldset>
-      {% endif %}
+      <label class="filter-field">
+        Authors <span class="hint">surname, or “Initial. Surname”</span>
+        <input type="text" name="authors"
+               value="{{ filter_defaults.authors }}" data-default="{{ filter_defaults.authors }}"
+               placeholder="e.g. Suyu, L. Dai">
+      </label>
 
-      <div class="filter-group filter-text">
-        <label class="filter-field">
-          Also include <span class="hint">(comma-separated, matches title + abstract)</span>
-          <input type="text" name="include" placeholder="e.g. JWST, pulsar timing">
-        </label>
-        <label class="filter-field">
-          Exclude
-          <input type="text" name="exclude" placeholder="e.g. review, forecast">
-        </label>
-      </div>
+      <label class="filter-field">
+        Categories <span class="hint">exact, or a whole archive (astro-ph)</span>
+        <input type="text" name="categories"
+               value="{{ filter_defaults.categories }}" data-default="{{ filter_defaults.categories }}"
+               placeholder="e.g. astro-ph.CO, gr-qc">
+      </label>
 
-      <div class="filter-group filter-misc">
-        <label><input type="checkbox" name="priority-only"> Priority authors only</label>
+      <label class="filter-field">
+        Exclude <span class="hint">substring of title + abstract</span>
+        <input type="text" name="exclude"
+               value="{{ filter_defaults.exclude }}" data-default="{{ filter_defaults.exclude }}"
+               placeholder="e.g. review, forecast">
+      </label>
+
+      <div class="filter-misc">
+        <label><input type="checkbox" name="priority-only"> ★ starred authors only</label>
         <label class="filter-field">
           Window
           <select name="window">
             <option value="0">All {{ window_dates | length }} day{{ "" if window_dates | length == 1 else "s" }}</option>
-            <option value="7">Last 7 days</option>
+            {% if window_dates | length > 3 %}<option value="3">Last 3 days</option>{% endif %}
             <option value="1">Today only</option>
           </select>
         </label>
       </div>
     </div>
+
+    {% if suggest_categories or suggest_topics %}
+    <div class="filter-suggest">
+      {% if suggest_categories %}
+      <p class="chip-row"><span class="chip-lead">in view:</span>
+        {% for c, n in suggest_categories %}<button type="button" class="chip" data-field="categories" data-value="{{ c }}">{{ c }} <span class="chip-n">{{ n }}</span></button>{% endfor %}
+      </p>
+      {% endif %}
+      {% if suggest_topics %}
+      <p class="chip-row"><span class="chip-lead">cluster terms:</span>
+        {% for t in suggest_topics %}<button type="button" class="chip" data-field="topics" data-value="{{ t }}">{{ t }}</button>{% endfor %}
+      </p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <p class="filter-warn" hidden></p>
   </details>
 </section>
 {% endif %}

@@ -21,19 +21,53 @@ AI features (summarizing, idea brainstorming).
   critic against live arXiv (two passes; the second measured the whole pipeline on the
   Mon 7 Sep 2026 announcement day), plan revised and saved below. User will continue in
   the afternoon.
-- **2026-09-08 (late)** — Post-v1 polish. (a) Fixed the atlas tooltip landing in the
-  page corner — `#atlas-graph` had no `position`, so the `absolute` tooltip resolved
-  against the viewport while the JS positioned it relative to the graph box; added
-  `position: relative` + cursor-following clamp (a follow-up tooltip-offset report is
-  being chased separately). (b) **In-browser view filters** added: CI still fetches the
-  broad keyword net, but `generate_site.py` now embeds full per-paper metadata + the
-  keyword/category/day lists in `#atlas-data`, and a new `assets/filters.js` +
-  Filters panel in `day.html` re-slice the page live (categories, topics match-any,
-  free-text include/exclude, priority-authors-only, 1/7/all-day window). Shows/hides
-  cards, collapses empty clusters, dims the graph via new
-  `window.atlasGraph.setVisible()`; state in URL hash + localStorage; degrades to
-  "show everything" with no JS. What still needs a config edit + rebuild: which
-  categories are fetched and how wide the keyword net is. 76 unit tests pass.
+- **2026-09-08 (latest)** — Free-form filters + broad fetch net (plan:
+  `~/.claude/plans/glittery-inventing-boole.md`). **80 unit tests pass.**
+  - **Rejected browser-side live arXiv queries**: `curl` with an `Origin` header shows
+    neither `export.arxiv.org/api/query` nor `rss.arxiv.org` sends
+    `Access-Control-Allow-Origin`, so a static page can't `fetch()` arXiv without a
+    third-party CORS proxy. Whole-archive RSS (`rss.arxiv.org/rss/astro-ph`) verified
+    HTTP 200 + valid channel, so broadening is config-only.
+  - **`config.yaml`**: `categories` → whole archives `[astro-ph, gr-qc, hep-ph, hep-th,
+    hep-ex]`; new `filter_mode: all` (keep every new/cross; keywords/authors only rank
+    + seed the UI); `atlas.window_days 14→5`; new `atlas.max_window_papers: 400`,
+    `site.match_chars: 800`, `site.repo_url: ""`, `site.max_papers_per_day 100→200`.
+  - **`fetch_arxiv.filter_papers`**: `mode="all"|"keywords"`; the
+    `matched_keywords`/`matched_authors` tags are now set on every kept paper (needed
+    for scoring + the UI), gate is `mode=="all" or …`. `fetch_feed` timeout 30→60.
+  - **`build_atlas.load_window_files(window, max_papers)`**: caps the corpus after the
+    score sort, never dropping an `is_today` paper. `stoplist_keywords` default now
+    follows `filter_mode` (on for keywords, off for all — under `all` the keywords are
+    discriminative). **Retune on real broad-net data.**
+  - **`generate_site._graph_nodes`**: embeds `text` (lowercased abstract truncated to
+    `match_chars`), `au` (`"initial|surname;…"` from the already-normalized
+    `author_keys`), `starred` (was `authors`); blob adds `corpus_categories`,
+    `repo_url`; drops the config keyword/category lists (now template defaults).
+  - **`templates/day.html` + `assets/filters.js` (rewrite) + `style.css`**: four
+    comma-separated fields (Topics/Authors/Categories/Exclude) seeded from config via
+    `value=`/`data-default=`, ★-starred-only toggle, window select (0/3/1 day), click-
+    to-append suggestion chips (present categories + cluster-label terms), and an
+    "unknown category" hint. Predicate: window ∧ category ∧ ¬exclude ∧ priority ∧
+    (Topics/Authors empty ∨ topic-substring ∨ author-match). Category match is exact or
+    whole-archive prefix. Author query gets a ~25-line JS port of
+    `arxiv_text.name_key`/`_PARTICLES` (only the cheap half; LaTeX/Unicode stays in
+    Python). **State design**: `v=1` marker + only-differs-from-`data-default` fields
+    persisted, so "cleared Topics" ≠ "no saved state"; `STORE_KEY` bumped to `:2`
+    (old `catoff`/`kwoff` bookmarks silently fall back to defaults).
+  - **Volume math** (measured `2026-09-07` data): 3,216 B/paper today; uncapped
+    5-archive×14-day ≈ 7 MB/page; capped (400 papers, 800-char text, 5-day window)
+    ≈ 1 MB (~210 KB gz). Node JSON now ~1,250 B.
+  - **Watch-item**: `render_site` re-renders every archive day with its own window — at
+    ~400-paper pages × 60 days that's ~48 MB `docs/` + ~60 atlas builds per CI run.
+    `docs/` is gitignored + a Pages artifact so nothing breaks; bound with a new
+    `site.archive_days` if CI time creeps up.
+  - **Not yet exercised on real data**: broad-net volume, `window_days: 5` atlas
+    quality, `stoplist_keywords` default — all need a live announcement day
+    (`2026-09-08` feeds were empty).
+  Earlier this session (superseded above): first-pass in-browser filters used fixed
+  checkboxes from config; the tooltip fix `9ce36c3` was correct on `position` but its
+  flip/clamp still pinned the tooltip to the box edge in narrow layouts — now rewritten
+  (`placeTooltip` shrinks-to-fit + flips only when the far side fits).
 - **2026-09-08 (evening)** — Steps 7, 8, 9 done; 6 and 10 written but not yet
   exercised end-to-end on GitHub. `build_atlas.py` + `generate_site.py` + `build.py`
   + templates + assets (d3 vendored) + `.github/workflows/daily_arxiv.yml` + `README.md`

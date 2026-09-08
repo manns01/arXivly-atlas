@@ -5,16 +5,24 @@ papers across your chosen categories, filtered to your topics, **grouped into
 clusters of similar work and connected in a force-directed "atlas" graph** so the
 day's literature is fast to scan.
 
-- Fetches the per-category arXiv **RSS** feeds (the only source that expresses
-  "announced today").
-- Filters by keyword substrings and priority authors.
+- Fetches arXiv **RSS** feeds (the only source that expresses "announced today")
+  for whole archives — `astro-ph`, `gr-qc`, `hep-ph`, `hep-th`, `hep-ex`.
 - Builds a TF-IDF / cosine similarity atlas over a **rolling window** of
   announcement days (a single day is too small to connect).
 - Renders a static site into `docs/`, published by GitHub Pages.
 - A GitHub Actions cron runs it every weekday morning.
+- The page has **free-form filters** — type topics, authors, categories, and
+  exclusions as comma-separated text; the cards and the graph re-slice live.
 
 Plain Python + Jinja2 + numpy + a vendored copy of d3. No database, no server, no
 build framework.
+
+> **Want a different arXiv bulletin?** Add it to `categories` in `config.yaml`
+> — one line — and the next daily run picks it up. Whole archives work
+> (`astro-ph`, not just `astro-ph.CO`), so anything you type into the site's
+> **Categories** box that lives under a fetched archive already has data behind
+> it. A static site can't fetch a feed the daily job never pulled, so a genuinely
+> new archive needs that config edit.
 
 ---
 
@@ -47,22 +55,26 @@ python -m unittest discover -s tests
 
 | Key | Meaning |
 |---|---|
-| `categories` | arXiv categories to fetch, e.g. `astro-ph.CO`, `gr-qc`. |
+| `categories` | arXiv feeds to fetch. Whole archives (`astro-ph`) or sub-categories (`astro-ph.CO`) — an archive supersets its sub-categories. |
 | `announce_types` | Keep only these RSS announce types. Default `[new, cross]` (drops `replace` / `replace-cross`, ~44% of a feed). |
-| `keywords` | A paper is kept if **any** of these is a **case-insensitive substring** of its title or abstract. `gravitational lensing` matches "gravitational lensing" but not "lensing of gravitational waves" — add the variants you want. Empty `keywords` **and** empty `authors` keeps everything. |
-| `exclude_keywords` | If any matches (same substring rule), the paper is dropped even if a keyword or author matched. |
-| `authors` | Priority authors. Matched on the **LaTeX/Unicode-normalized surname, exactly** (never a substring — `Hu` will not match "Hubble"). Two forms: a bare surname (`Suyu`) matches any first name; `Initial. Surname` (`L. Dai`, `Wayne Hu`) also requires the first initial to match — use this for common surnames. Particles stay with the surname: write `van der Bij`, not `Bij`. |
-| `scoring` | `title_weight` · (keyword hits in title) + `abstract_weight` · (hits in abstract) + `author_bonus` · (matched priority authors). Sets the card order and the truncation cutoff. |
+| `filter_mode` | `all` — keep every `new`/`cross` paper in `categories`; `keywords`/`authors` only rank (scoring), seed the filter UI, and feed the stop-list. `keywords` — a paper must match a keyword or a priority author to appear at all. Use `all` with a broad `categories` net. |
+| `keywords` | Comma-joined into the site's **Topics** field as defaults. Also: case-insensitive substring for `score_paper` ranking, and (under `filter_mode: keywords`) the admission filter. `gravitational lensing` matches that phrase literally, not "lensing of gravitational waves". |
+| `exclude_keywords` | Seeds the **Exclude** field. A paper matching one (same substring rule) is dropped at fetch time regardless of `filter_mode`. |
+| `authors` | Seeds the **Authors** field. Matched on the **LaTeX/Unicode-normalized surname, exactly** (never a substring — `Hu` ≠ "Hubble"). Two forms: bare surname (`Suyu`) matches any first name; `Initial. Surname` (`L. Dai`) also requires the first initial. Particles stay with the surname: `van der Bij`, not `Bij`. |
+| `scoring` | `title_weight` · (keyword hits in title) + `abstract_weight` · (hits in abstract) + `author_bonus` · (matched priority authors). Sets card order and the window cap's keep-order. |
 | `similarity.knn` | Visual graph: each node keeps its top-k neighbours; an edge is drawn only if the link is **mutual** and cosine ≥ `edge_threshold`. |
 | `similarity.edge_threshold` | Minimum cosine for a drawn edge (measured max pair ≈ 0.23, median ≈ 0.03 on one day). |
 | `similarity.distance_threshold` | Clusters: average-linkage agglomerative merge on `1 − cosine`, cut here (0.92 ≈ cosine 0.08). Computed **independently** of the edge graph. |
 | `similarity.min_cluster_size` | Groups smaller than this (and true singletons) go to the **Unclustered** list — expect ~30% of papers. |
-| `similarity.stoplist_keywords` | Add every word of every `keywords` phrase to the TF-IDF stop-list. Keep this **on**: the filter terms match nearly every paper and otherwise fuse the whole corpus into one cluster. |
+| `similarity.stoplist_keywords` | Add every word of every `keywords` phrase to the TF-IDF stop-list. Unset it follows `filter_mode`: on for `keywords` (they saturate that corpus), off for `all` (they're discriminative there). Set `true`/`false` to force it. |
 | `similarity.method` | `tfidf` today. This is the seam for swapping in embeddings later. |
-| `atlas.window_days` | How many announcement days the atlas spans. Default 14. Builds up from 1 on the first run. |
+| `atlas.window_days` | How many announcement days the atlas spans. `5` for the broad net (a narrow keyword net wants ~14). Builds up from 1 on the first run. |
+| `atlas.max_window_papers` | Hard cap on the window corpus (page size, clustering cost, graph size). Applied after scoring; **today's papers are never dropped** — only the older context is trimmed to the highest-scored. |
 | `site.title` | Site and page title. |
-| `site.base_url` | Only used for `<link rel="canonical">`. Asset and nav links are relative, so the site works from `file://`, a project page, or a user page unchanged. Set it to `https://<you>.github.io/arXivly-atlas` (no trailing slash) for correct canonical URLs, or `""` to omit them. |
-| `site.max_papers_per_day` | Hard cap on papers kept for a day, after scoring. |
+| `site.base_url` | Only used for `<link rel="canonical">`. Asset/nav links are relative, so the site works from `file://`, a project page, or a user page unchanged. Set `https://<you>.github.io/arXivly-atlas` (no trailing slash), or `""` to omit canonicals. |
+| `site.repo_url` | Used by the "unknown category" hint to link to your `config.yaml`. Blank → the hint shows text only. |
+| `site.match_chars` | Characters of each abstract embedded in the page for the in-browser filter to match against. Lower = smaller page, shallower text search. |
+| `site.max_papers_per_day` | Hard cap on papers kept for a single day, after scoring. Keep it ≥ your typical daily volume so today is never truncated. |
 
 ### Tuning
 
@@ -71,6 +83,44 @@ the rolling window has real depth: widen `window_days` if clusters feel sparse,
 raise `edge_threshold` if the graph is a hairball, adjust `distance_threshold` if
 clusters are too coarse or too fragmented. The built-in English/boilerplate
 stop-list lives in `build_atlas.py` (`_STOPWORDS`).
+
+---
+
+## Filtering: two layers
+
+**The fetch net** (`config.yaml`, runs daily). `categories` + `filter_mode`
+decide which papers exist on the site at all. A broad net (`filter_mode: all`
+over whole archives) means the browser can filter to almost anything; a narrow
+net can't be widened from the browser.
+
+**The view** (the Filters panel, runs per keystroke). Four comma-separated text
+fields — **Topics**, **Authors**, **Categories**, **Exclude** — seeded from
+`config.yaml` but fully editable, plus a **★ starred authors only** toggle and a
+window selector. A paper is shown when:
+
+```
+in the chosen day window
+AND (Categories empty OR its category matches a typed one — exact, or a whole
+     archive: "astro-ph" matches "astro-ph.*")
+AND (Exclude empty OR no typed exclude term is in its title+abstract)
+AND (starred-only off OR it has a starred author)
+AND ( Topics and Authors both empty
+      OR a typed topic is a substring of its title+abstract
+      OR a typed author matches )
+```
+
+Author matching reuses arXiv's surname normalization: the paper side is
+LaTeX+Unicode-normalized (`Mu\~{n}oz` → `munoz`); a typed query is only
+Unicode-normalized (`Kühnel` → `kuhnel`), since you type plain text, not LaTeX.
+Surname is exact, initial checked only if you give one (`L. Dai` vs `Dai`).
+
+The view state lives in the URL hash and `localStorage`, so a filtered view is
+bookmarkable. **Reset** restores the `config.yaml` defaults; clearing the fields
+by hand is the "show everything" state. With JavaScript off, the panel stays
+hidden and every paper renders.
+
+Typing a category that isn't in the current window shows a hint pointing at
+`config.yaml` (with a link when `site.repo_url` is set).
 
 ---
 
@@ -99,15 +149,18 @@ is treated as immutable history.
 
 `fetch_arxiv.py` → `data/raw/<pubdate>.json` (one file per announcement day):
 parse the RSS feeds, dedupe by arXiv id across categories, keep `new`/`cross`,
-apply the keyword + author filter, score, truncate.
+apply the `filter_mode` filter (drop excludes; under `keywords` also require a
+keyword/author hit), score, truncate to `max_papers_per_day`.
 
 `build_atlas.py`:
 
 1. `load_window` — newest raw file plus up to `window_days − 1` earlier ones,
-   deduped by id (earliest wins), each paper tagged `is_today`.
+   deduped by id (earliest wins), each paper tagged `is_today`, then capped to
+   `atlas.max_window_papers` (every `is_today` paper kept; older ones trimmed to
+   the highest-scored).
 2. Hand-rolled TF-IDF over `title + abstract`: tokenize, drop the English
-   stop-list + every configured keyword word, `tf · (log((N+1)/(df+1)) + 1)`,
-   L2-normalize. Cosine = matrix · matrixᵀ.
+   stop-list (+ the configured keyword words when `stoplist_keywords` is on),
+   `tf · (log((N+1)/(df+1)) + 1)`, L2-normalize. Cosine = matrix · matrixᵀ.
 3. **Edges** (visual only): mutual top-k neighbours with cosine ≥ threshold.
 4. **Clusters** (independent): average-linkage agglomerative partitioning on
    `1 − cosine`, cut at `distance_threshold`. Not connected components — a

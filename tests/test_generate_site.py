@@ -119,24 +119,35 @@ class RenderSite(unittest.TestCase):
             docs, _ = self._build(tmp)
             idx = (docs / "index.html").read_text()
         obj = json.loads(re.search(r'id="atlas-data">(.*?)</script>', idx, re.S).group(1))
-        self.assertEqual(obj["keywords"], CONFIG["keywords"])
-        self.assertEqual(obj["categories"], CONFIG["categories"])
         self.assertEqual(obj["days"], ["2026-09-05", "2026-09-04"])
+        self.assertIn("corpus_categories", obj)
+        self.assertIn("astro-ph.CO", obj["corpus_categories"])
+        self.assertEqual(obj["repo_url"], "")
         for n in obj["nodes"]:
-            for key in ("abstract", "categories", "keywords", "priority",
-                        "first_pubdate", "announce_type"):
+            for key in ("text", "au", "starred", "categories", "keywords",
+                        "priority", "first_pubdate", "announce_type"):
                 self.assertIn(key, n)
+            self.assertNotIn("abstract", n)
             self.assertIsInstance(n["priority"], bool)
+            self.assertEqual(n["text"], n["text"].lower())
+            self.assertLessEqual(len(n["text"]), 800)
 
     def test_filter_panel_rendered(self):
         with tempfile.TemporaryDirectory() as tmp:
             docs, _ = self._build(tmp)
             idx = (docs / "index.html").read_text()
         self.assertIn('<section class="filters" hidden', idx)
-        self.assertEqual(idx.count('name="cat"'), 1)      # one category in test config
-        self.assertEqual(idx.count('name="kw"'), 2)       # two keywords in test config
+        for f in ("topics", "authors", "categories", "exclude"):
+            self.assertEqual(idx.count('name="%s"' % f), 1, f)
+        self.assertEqual(idx.count('name="cat"'), 0)
+        self.assertEqual(idx.count('name="kw"'), 0)
+        # config values seed the fields (value= and data-default=)
+        self.assertIn('value="dark matter, cosmology"', idx)
+        self.assertIn('data-default="dark matter, cosmology"', idx)
+        self.assertIn('value="astro-ph.CO"', idx)
         self.assertIn('name="priority-only"', idx)
         self.assertIn('name="window"', idx)
+        self.assertIn('class="filter-warn"', idx)
         self.assertIn("assets/filters.js", idx)
         # atlas-data must be outside the >=2 graph block so filters always see it
         self.assertLess(idx.index('id="atlas-data"'), idx.index('id="atlas-graph"'))

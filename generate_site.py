@@ -70,21 +70,27 @@ def _decorate(papers: list[dict]) -> dict[str, dict]:
     return out
 
 
+MATCH_CHARS = 800
+
+
 def _graph_nodes(atlas_nodes: list[dict], by_id: dict[str, dict],
-                 pubdate: str) -> list[dict]:
-    """Atlas nodes enriched with everything the in-browser filters need to
-    re-slice the view without a rebuild (full abstract, all categories, which
-    configured keywords matched, priority-author flag, the day it first
-    appeared)."""
+                 pubdate: str, match_chars: int) -> list[dict]:
+    """Atlas nodes enriched with what the in-browser filters need to re-slice the
+    view without a rebuild: a lowercased, truncated ``text`` (abstract) for
+    substring matching, all ``categories``, the LaTeX/Unicode-normalized author
+    keys as a ``"initial surname;..."`` string (``au``), the matched priority
+    surnames (``starred``) + ``priority`` flag, and the day it first appeared."""
     out = []
     for n in atlas_nodes:
         p = by_id.get(n["id"], {})
+        au = ";".join(f"{i}|{s}" for i, s in p.get("author_keys", []))
         out.append({
             **n,
-            "abstract": p.get("abstract", ""),
+            "text": (p.get("abstract", "") or "")[:match_chars].lower(),
             "categories": p.get("categories", []),
+            "au": au,
             "keywords": p.get("matched_keywords", []),
-            "authors": p.get("matched_authors", []),
+            "starred": p.get("matched_authors", []),
             "priority": bool(p.get("matched_authors")),
             "announce_type": p.get("announce_type", ""),
             "first_pubdate": p.get("first_pubdate", pubdate),
@@ -92,8 +98,13 @@ def _graph_nodes(atlas_nodes: list[dict], by_id: dict[str, dict],
     return out
 
 
-def _day_context(window: list[Path], config: dict, generated_at: str) -> dict:
-    pubdate, papers = load_window_files(window)
+def _csv(values: list[str]) -> str:
+    return ", ".join(values)
+
+
+def _day_context(window: list[Path], config: dict, generated_at: str,
+                 max_window: int | None = None) -> dict:
+    pubdate, papers = load_window_files(window, max_window)
     atlas = build_atlas(papers, config)
     by_id = _decorate(papers)
 
@@ -110,24 +121,53 @@ def _day_context(window: list[Path], config: dict, generated_at: str) -> dict:
 
     days = sorted({p.get("first_pubdate", pubdate) for p in papers}, reverse=True)
 
+    site = config.get("site", {})
+    match_chars = int(site.get("match_chars", MATCH_CHARS))
+
+    # Distinct categories actually present, most common first -> filter hints +
+    # the "unknown category" check.
+    cat_count: dict[str, int] = {}
+    for p in papers:
+        for c in p.get("categories", []):
+            cat_count[c] = cat_count.get(c, 0) + 1
+    suggest_categories = sorted(cat_count.items(), key=lambda kv: (-kv[1], kv[0]))
+    corpus_categories = [c for c, _ in suggest_categories]
+
+    # Distinctive cluster-label terms are literally "what's in this window".
+    seen_terms: set[str] = set()
+    suggest_topics: list[str] = []
+    for c in atlas["clusters"]:
+        for term in (c["label"] or "").split("/"):
+            term = term.strip()
+            if term and term not in seen_terms:
+                seen_terms.add(term)
+                suggest_topics.append(term)
+    suggest_topics = suggest_topics[:12]
+
     return {
         "pubdate": pubdate,
         "generated_at": generated_at,
-        "site": config.get("site", {}),
+        "site": site,
         "window_days": len(window),
         "today_count": today_count,
         "atlas": atlas,
         "atlas_json": _json_for_script({
-            "nodes": _graph_nodes(atlas["nodes"], by_id, pubdate),
+            "nodes": _graph_nodes(atlas["nodes"], by_id, pubdate, match_chars),
             "links": atlas["links"],
             "days": days,
-            "keywords": config.get("keywords", []),
-            "categories": config.get("categories", []),
+            "corpus_categories": corpus_categories,
+            "repo_url": site.get("repo_url", ""),
         }),
         "clusters": clusters,
         "unclustered": unclustered,
-        "filter_keywords": config.get("keywords", []),
-        "filter_categories": config.get("categories", []),
+        "filter_defaults": {
+            "topics": _csv(config.get("keywords", [])),
+            "authors": _csv(config.get("authors", [])),
+            "categories": _csv(config.get("categories", [])),
+            "exclude": _csv(config.get("exclude_keywords", [])),
+        },
+        "suggest_categories": suggest_categories,
+        "suggest_topics": suggest_topics,
         "window_dates": days,
     }
 
@@ -138,8 +178,9 @@ def render_site(config: dict, out_dir: Path = DOCS_DIR,
     if not files:
         raise SystemExit("no data/raw/*.json -- run fetch_arxiv.py first")
 
-    window_days = int((config.get("atlas") or {}).get(
-        "window_days", DEFAULTS["window_days"]))
+    atlas_cfg = config.get("atlas") or {}
+    window_days = int(atlas_cfg.get("window_days", DEFAULTS["window_days"]))
+    max_window = atlas_cfg.get("max_window_papers", DEFAULTS["max_window_papers"])
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
     env = _env()
@@ -156,7 +197,7 @@ def render_site(config: dict, out_dir: Path = DOCS_DIR,
     days_meta = []
     for i, _ in enumerate(files):
         window = files[max(0, i + 1 - window_days): i + 1]
-        ctx = _day_context(window, config, generated_at)
+        ctx = _day_context(window, config, generated_at, max_window)
 
         archive_html = day_tpl.render(
             rel="../", canonical=f"/archive/{ctx['pubdate']}.html", **ctx)
