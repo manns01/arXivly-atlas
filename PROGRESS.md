@@ -34,8 +34,7 @@ AI features (summarizing, idea brainstorming).
   cleared-vs-absent machinery (no longer needed without seeding). `STORE_KEY` → `:3`.
   Blob carries `site_defaults`; `has_site_defaults` gates the button. 80 tests pass.
   Also fixed: reset/clear now `preventDefault`+`stopPropagation` so the `<details>`
-  doesn't toggle, and clears the debounce. (User separately added Nirmal Raj / Ranjan
-  Laha to `config.yaml` authors.)
+  doesn't toggle, and clears the debounce.
 - **2026-09-08 (latest)** — Free-form filters + broad fetch net (plan:
   `~/.claude/plans/glittery-inventing-boole.md`). **80 unit tests pass.**
   - **Rejected browser-side live arXiv queries**: `curl` with an `Origin` header shows
@@ -157,16 +156,15 @@ AI features (summarizing, idea brainstorming).
   `requests`, `numpy`.
 
 ### Open items / to tune after first real run
-- **Author false positives (found on the 2026-09-08 live run).** User chose
-  first-initial matching. `authors:` entries are now either a bare surname (`Suyu`) or
-  `Initial. Surname` (`L. Dai`) — surname still matched exactly, initial checked only
-  when given. `config.yaml` pins best-guess initials for the common surnames
-  (`W. Hu`, `L. Hui`, `L. Dai`, `S. More`, `B. Carr`, `D. Marsh`, `A. Green`, `H. Yu`,
-  `Y. Mao`); **verify these are the intended researchers**. This dropped the clear junk
-  (`Zhongtian Hu`, `Yuesheng Dai`) — author-only matches went 5 → 4 of the day's papers.
-  Residual: `H. Yu` still matches `Hao Yu` / `Huai-Min Yu` (same initial); needs a full
-  first name to disambiguate, deferred. `Natarajan` / `Kochanek` author-only hits remain
-  and may be genuine (distinctive surnames, user-chosen).
+- **Author false positives (found on the 2026-09-08 live run).** Chose first-initial
+  matching. `authors:` entries are now either a bare surname (`Suyu`) or
+  `Initial. Surname` (`L. Dai`) — surname matched exactly, initial checked only when
+  given. Use the initial form for common surnames and **verify the pinned initials are
+  the intended researcher**. This dropped the clear same-surname junk; author-only
+  matches went 5 → 4 of the day's papers. Residual: an `Initial. Surname` spec still
+  collides when two researchers share both (e.g. `H. Yu`); needs a full first name to
+  disambiguate, deferred. (The maintainer's real watchlist is not committed — the
+  public `config.yaml` ships a 2-entry example; see the file's comments.)
 - `similarity.edge_threshold` (~0.08), `distance_threshold` (~0.92), `knn` (4),
   `min_cluster_size` — retune once the window has real depth; measured starting points
   are in `config.yaml` comments.
@@ -313,46 +311,8 @@ keywords:                            # plain case-insensitive substring on title
 exclude_keywords: []
 
 authors:                             # surname match, LaTeX/Unicode-normalized
-  # lensing
-  - Zumalacarregui
-  - Suyu
-  - Vegetti
-  - Ezquiaga
-  - Ajith
-  - Venumadhav
-  - Hannuksela
-  - Keitel
-  - Oguri
-  - Dai
-  - Natarajan
-  - Kochanek
-  - Schneider
-  - More
-  # ULDM
-  - Hu
-  - Hui
-  - Broadhurst
-  - Marsh
-  - Slatyer
-  - Thaler
-  - Graham
-  # PBH
-  - Carr
-  - Sasaki
-  - Suyama
-  - Green
-  - Kühnel
-  - Kaiser
-  # SIDM
-  - Spergel
-  - Tulin
-  - Yu
-  - Vogelsberger
-  # FRB lensing
-  - Masui
-  # structure / surveys
-  - Wechsler
-  - Mao
+  - Suyu                             # ship an example list; the maintainer's real
+  - L. Dai                           # watchlist is not committed (see config.yaml)
 
 scoring:
   title_weight: 3

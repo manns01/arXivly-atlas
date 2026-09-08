@@ -185,3 +185,11 @@ keyword/author hit), score, truncate to `max_papers_per_day`.
 - **Agentic features** (summaries, idea brainstorming, email): `data/raw/*.json`
   is immutable, dated, and complete — read it and add a step; nothing else needs
   to change.
+
+## License
+
+MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Manish Tamta.
+
+You are free to use, modify, and deploy this. If you run a public fork or build
+something on top of it, a credit line or link back to this repo is appreciated
+(the generated site keeps an attribution in its footer — please leave it in).

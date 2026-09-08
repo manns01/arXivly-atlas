@@ -129,56 +129,16 @@ spotlight:
             graph neural network, transformer, diffusion model, foundation model,
             physics-informed neural network, neural posterior estimation]
 
-# Priority authors. Matched on the LaTeX/Unicode-normalized surname, exactly
-# (never a substring). Two forms:
+# Priority authors -- a small ranking bonus (`scoring.author_bonus`) and a ★
+# badge whenever one appears on a paper. Matched on the LaTeX/Unicode-normalized
+# surname, exactly (never a substring). Two forms:
 #   - bare surname        -> "Suyu"      matches any first name
 #   - initial + surname   -> "L. Dai"    first initial must also match
-# Use the initial form for common surnames. The pinned initials below are
-# best-guesses for the intended researcher -- correct any that are wrong.
+# Use the initial form for common surnames. Replace these with the people whose
+# work you want floated to the top; leave the list empty to disable.
 authors:
-  # lensing
-  - Zumalacarregui
   - Suyu
-  - Vegetti
-  - Ezquiaga
-  - Ajith
-  - Venumadhav
-  - Hannuksela
-  - Keitel
-  - Oguri
-  - L. Dai            # Liang Dai
-  - Natarajan
-  - Kochanek
-  - Schneider
-  - S. More           # Surhud More
-  # dark matter
-  - Nirmal Raj
-  - Ranjan Laha
-  # ULDM
-  - W. Hu             # Wayne Hu
-  - L. Hui            # Lam Hui
-  - Broadhurst
-  - D. Marsh          # David J. E. Marsh
-  - Slatyer
-  - Thaler
-  - Graham
-  # PBH
-  - B. Carr           # Bernard Carr
-  - Sasaki
-  - Suyama
-  - A. Green          # Anne Green
-  - Kuhnel
-  - Kaiser
-  # SIDM
-  - Spergel
-  - Tulin
-  - H. Yu             # Hai-Bo Yu (note: still collides with other "H. Yu")
-  - Vogelsberger
-  # FRB lensing
-  - Masui
-  # structure / surveys
-  - Wechsler
-  - Y. Mao            # Yao-Yuan Mao
+  - L. Dai            # Liang Dai -- example of the "initial + surname" form
 
 scoring:
   title_weight: 3
