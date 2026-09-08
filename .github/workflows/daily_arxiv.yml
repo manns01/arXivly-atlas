@@ -1,0 +1,64 @@
+name: daily-arxiv
+
+on:
+  schedule:
+    # 07:23 UTC, weekdays. After arXiv's ~04:00 UTC feed rebuild; :23 dodges the
+    # top-of-hour scheduler backlog.
+    - cron: "23 7 * * 1-5"
+  workflow_dispatch:
+
+# Don't let a slow run overlap the next one and race the git push.
+concurrency:
+  group: daily-arxiv
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # commit the day's data/raw/<date>.json back to main
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      # fetch -> atlas -> generate. Non-zero exit fails the job and nothing
+      # deploys, so the previously published site stays up.
+      - run: python build.py
+
+      - name: Commit new raw data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/raw
+          if git diff --cached --quiet; then
+            echo "No new raw data to commit."
+          else
+            git commit -m "data: arXiv announcements $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

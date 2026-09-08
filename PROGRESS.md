@@ -21,6 +21,15 @@ AI features (summarizing, idea brainstorming).
   critic against live arXiv (two passes; the second measured the whole pipeline on the
   Mon 7 Sep 2026 announcement day), plan revised and saved below. User will continue in
   the afternoon.
+- **2026-09-08 (evening)** — Steps 7, 8, 9 done; 6 and 10 written but not yet
+  exercised end-to-end on GitHub. `build_atlas.py` + `generate_site.py` + `build.py`
+  + templates + assets (d3 vendored) + `.github/workflows/daily_arxiv.yml` + `README.md`
+  all landed. **74 unit tests pass.** The live arXiv feed rolled to **2026-09-08 during
+  the session — a 0-paper day** — which exercised the empty-day path for real: the site
+  still renders, showing "0 papers announced today" plus the atlas over the 2-day rolling
+  window (25 papers, 5 clusters). `data/raw/2026-09-08.json` (empty `papers`) committed.
+  Open: browser eyeball of the page (Chrome ext declined this session), and the GitHub
+  push + Pages config + first `workflow_dispatch` (all user actions).
 - **2026-09-08 (pm)** — Build-order steps 1–2 done. Created project `.venv` (git-ignored)
   and `requirements.txt` (5 pinned deps; only `feedparser` was actually missing from the
   conda base env). Captured live RSS fixtures for the 4 categories to `tests/fixtures/`
@@ -346,9 +355,14 @@ No scikit-learn, no networkx. d3 v7 vendored, not a pip dep.
       (14 files). **User still needs to:** create the GitHub repo, `git remote add
       origin …`, `git push -u origin main`, then Settings → Pages → Source = GitHub
       Actions and Settings → Actions → Workflow permissions = read/write.)*
-- [ ] 6. Minimal workflow + placeholder `docs/index.html`; run via `workflow_dispatch`;
-      confirm artifact deploy works and `base_url` resolves at the real Pages URL —
-      before the real templates exist.
+- [~] 6. GitHub Actions workflow. *(2026-09-08: `.github/workflows/daily_arxiv.yml`
+      written — cron `23 7 * * 1-5` + `workflow_dispatch`; `build` job (checkout,
+      setup-python 3.11 + pip cache, `pip install -r requirements.txt`, `python
+      build.py`, commit only `data/raw/` if changed, `upload-pages-artifact docs/`);
+      `deploy` job (`deploy-pages`, `needs: build`); `concurrency: daily-arxiv`.
+      Templates already exist so no placeholder page. **User still needs to push +
+      configure Pages (step 5) then run it once via the Actions tab and confirm the
+      live URL.**)*
 - [x] 7. `build_atlas.py` — verify clusters/edges/labels on the window; tune `knn` /
       `distance_threshold`. *(2026-09-08: implemented — `load_window` (rolling window,
       dedupe keep-earliest, `is_today` tag), hand-rolled TF-IDF (`tf·(log((N+1)/(df+1))+1)`,
@@ -377,7 +391,11 @@ No scikit-learn, no networkx. d3 v7 vendored, not a pip dep.
       generate; `--date YYYY-MM-DD` skips fetch and rebuilds from existing
       `data/raw/`. Any stage's non-zero exit stops and propagates. 5 unit tests.)*
       Still to do: wire the real build into the workflow (part of step 6).
-- [ ] 10. `README.md`; final PROGRESS.md pass.
+- [x] 10. `README.md`. *(2026-09-08: written — what it is, local quick start,
+      full `config.yaml` table incl. keyword-substring + author surname/initial
+      semantics, GitHub Pages deploy steps, "how the atlas is built", extension
+      seams (`similarity.method`, `label_cluster`, immutable `data/raw`).)*
+      Final PROGRESS pass still owed once the site is confirmed live.
 
 ## Verification
 
