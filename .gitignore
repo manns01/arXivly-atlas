@@ -1,0 +1,14 @@
+# Build output — regenerated in CI, published as the Pages artifact
+docs/
+
+# Derived atlas data — debugging only, rebuilt from data/raw/
+data/derived/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# macOS
+.DS_Store

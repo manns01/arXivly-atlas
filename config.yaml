@@ -1,0 +1,92 @@
+# arXivly-atlas configuration. Everything here is safe to edit by hand.
+# See README for matching semantics. Values marked "measured" have starting
+# points from the 2026-09-07 planning measurement; retune after the rolling
+# window has real depth.
+
+categories: [astro-ph.CO, astro-ph.HE, gr-qc, hep-ph]
+announce_types: [new, cross]        # drop replace / replace-cross (~44% of a feed)
+
+keywords:                            # plain case-insensitive substring on title+abstract
+  - gravitational lensing
+  - wave optics
+  - microlensing
+  - caustic crossing
+  - weak lensing
+  - gravitational waves
+  - dark matter
+  - ultralight dark matter
+  - fuzzy dark matter
+  - self-interacting dark matter
+  - cosmology
+  - stochastic gravitational waves
+  - supermassive black holes
+exclude_keywords: []
+
+# Priority authors. Matched on the LaTeX/Unicode-normalized surname, exactly
+# (never a substring). Two forms:
+#   - bare surname        -> "Suyu"      matches any first name
+#   - initial + surname   -> "L. Dai"    first initial must also match
+# Use the initial form for common surnames. The pinned initials below are
+# best-guesses for the intended researcher -- correct any that are wrong.
+authors:
+  # lensing
+  - Zumalacarregui
+  - Suyu
+  - Vegetti
+  - Ezquiaga
+  - Ajith
+  - Venumadhav
+  - Hannuksela
+  - Keitel
+  - Oguri
+  - L. Dai            # Liang Dai
+  - Natarajan
+  - Kochanek
+  - Schneider
+  - S. More           # Surhud More
+  # ULDM
+  - W. Hu             # Wayne Hu
+  - L. Hui            # Lam Hui
+  - Broadhurst
+  - D. Marsh          # David J. E. Marsh
+  - Slatyer
+  - Thaler
+  - Graham
+  # PBH
+  - B. Carr           # Bernard Carr
+  - Sasaki
+  - Suyama
+  - A. Green          # Anne Green
+  - Kuhnel
+  - Kaiser
+  # SIDM
+  - Spergel
+  - Tulin
+  - H. Yu             # Hai-Bo Yu (note: still collides with other "H. Yu")
+  - Vogelsberger
+  # FRB lensing
+  - Masui
+  # structure / surveys
+  - Wechsler
+  - Y. Mao            # Yao-Yuan Mao
+
+scoring:
+  title_weight: 3
+  abstract_weight: 1
+  author_bonus: 5
+
+similarity:
+  method: tfidf                      # seam for swapping in embeddings later
+  knn: 4                             # visual edges: mutual k-NN ...
+  edge_threshold: 0.08              # ... AND cosine >= this (measured: max pair ~0.23)
+  distance_threshold: 0.92          # clusters: agglomerative cut on 1 - cosine
+  min_cluster_size: 2               # smaller clusters fall into "Unclustered"
+  stoplist_keywords: true           # add config.keywords to the TF-IDF stop-list
+
+atlas:
+  window_days: 14                   # single-day corpus is too small to connect
+
+site:
+  title: arXivly-atlas
+  base_url: /arXivly-atlas           # "" for a user/organization site or custom domain
+  max_papers_per_day: 100
