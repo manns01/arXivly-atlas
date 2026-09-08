@@ -146,4 +146,20 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
+
+  // Let filters.js dim the graph to a subset without disturbing the layout.
+  // Pass null to clear. Nodes not in the set fade and stop taking pointer
+  // events; a link shows only if both endpoints are visible.
+  window.atlasGraph = {
+    setVisible: function (ids) {
+      var show = ids == null ? null : (ids instanceof Set ? ids : new Set(ids));
+      var visible = function (d) { return !show || show.has(d.id); };
+      node.classed("dimmed", function (d) { return !visible(d); })
+        .attr("pointer-events", function (d) { return visible(d) ? null : "none"; });
+      label.classed("dimmed", function (d) { return !visible(d); });
+      link.classed("dimmed", function (d) {
+        return show && !(show.has(d.source.id) && show.has(d.target.id));
+      });
+    }
+  };
 })();

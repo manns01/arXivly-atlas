@@ -70,6 +70,28 @@ def _decorate(papers: list[dict]) -> dict[str, dict]:
     return out
 
 
+def _graph_nodes(atlas_nodes: list[dict], by_id: dict[str, dict],
+                 pubdate: str) -> list[dict]:
+    """Atlas nodes enriched with everything the in-browser filters need to
+    re-slice the view without a rebuild (full abstract, all categories, which
+    configured keywords matched, priority-author flag, the day it first
+    appeared)."""
+    out = []
+    for n in atlas_nodes:
+        p = by_id.get(n["id"], {})
+        out.append({
+            **n,
+            "abstract": p.get("abstract", ""),
+            "categories": p.get("categories", []),
+            "keywords": p.get("matched_keywords", []),
+            "authors": p.get("matched_authors", []),
+            "priority": bool(p.get("matched_authors")),
+            "announce_type": p.get("announce_type", ""),
+            "first_pubdate": p.get("first_pubdate", pubdate),
+        })
+    return out
+
+
 def _day_context(window: list[Path], config: dict, generated_at: str) -> dict:
     pubdate, papers = load_window_files(window)
     atlas = build_atlas(papers, config)
@@ -86,6 +108,8 @@ def _day_context(window: list[Path], config: dict, generated_at: str) -> dict:
     unclustered = [by_id[mid] for mid in atlas["unclustered"] if mid in by_id]
     today_count = sum(1 for p in papers if p["is_today"])
 
+    days = sorted({p.get("first_pubdate", pubdate) for p in papers}, reverse=True)
+
     return {
         "pubdate": pubdate,
         "generated_at": generated_at,
@@ -94,10 +118,17 @@ def _day_context(window: list[Path], config: dict, generated_at: str) -> dict:
         "today_count": today_count,
         "atlas": atlas,
         "atlas_json": _json_for_script({
-            "nodes": atlas["nodes"], "links": atlas["links"],
+            "nodes": _graph_nodes(atlas["nodes"], by_id, pubdate),
+            "links": atlas["links"],
+            "days": days,
+            "keywords": config.get("keywords", []),
+            "categories": config.get("categories", []),
         }),
         "clusters": clusters,
         "unclustered": unclustered,
+        "filter_keywords": config.get("keywords", []),
+        "filter_categories": config.get("categories", []),
+        "window_dates": days,
     }
 
 

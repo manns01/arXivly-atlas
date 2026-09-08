@@ -11,6 +11,7 @@ from pathlib import Path
 from generate_site import _json_for_script, _snippet, render_site
 
 CONFIG = {
+    "categories": ["astro-ph.CO"],
     "keywords": ["dark matter", "cosmology"],
     "similarity": {},
     "atlas": {"window_days": 3},
@@ -112,6 +113,33 @@ class RenderSite(unittest.TestCase):
         self.assertIn("nodes", obj)
         self.assertIn("links", obj)
         self.assertTrue(all("id" in n for n in obj["nodes"]))
+
+    def test_atlas_json_carries_filter_facets(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            docs, _ = self._build(tmp)
+            idx = (docs / "index.html").read_text()
+        obj = json.loads(re.search(r'id="atlas-data">(.*?)</script>', idx, re.S).group(1))
+        self.assertEqual(obj["keywords"], CONFIG["keywords"])
+        self.assertEqual(obj["categories"], CONFIG["categories"])
+        self.assertEqual(obj["days"], ["2026-09-05", "2026-09-04"])
+        for n in obj["nodes"]:
+            for key in ("abstract", "categories", "keywords", "priority",
+                        "first_pubdate", "announce_type"):
+                self.assertIn(key, n)
+            self.assertIsInstance(n["priority"], bool)
+
+    def test_filter_panel_rendered(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            docs, _ = self._build(tmp)
+            idx = (docs / "index.html").read_text()
+        self.assertIn('<section class="filters" hidden', idx)
+        self.assertEqual(idx.count('name="cat"'), 1)      # one category in test config
+        self.assertEqual(idx.count('name="kw"'), 2)       # two keywords in test config
+        self.assertIn('name="priority-only"', idx)
+        self.assertIn('name="window"', idx)
+        self.assertIn("assets/filters.js", idx)
+        # atlas-data must be outside the >=2 graph block so filters always see it
+        self.assertLess(idx.index('id="atlas-data"'), idx.index('id="atlas-graph"'))
 
     def test_dedup_paper_2_appears_once_and_not_today(self):
         with tempfile.TemporaryDirectory() as tmp:

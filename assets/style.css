@@ -85,10 +85,12 @@ main {
   overflow: hidden;
 }
 #atlas-graph svg { width: 100%; height: 100%; display: block; cursor: grab; }
-#atlas-graph .node { stroke-width: 1.5px; cursor: pointer; }
+#atlas-graph .node { stroke-width: 1.5px; cursor: pointer; transition: opacity 0.2s; }
 #atlas-graph .node.today { stroke: var(--ring); stroke-width: 2.5px; }
-#atlas-graph .link { stroke: var(--muted); stroke-opacity: 0.35; }
+#atlas-graph .link { stroke: var(--muted); stroke-opacity: 0.35; transition: opacity 0.2s; }
 #atlas-graph .label { font-size: 10px; fill: var(--muted); pointer-events: none; }
+#atlas-graph .dimmed { opacity: 0.06; }
+#atlas-graph .link.dimmed { opacity: 0; }
 .graph-tooltip {
   position: absolute;
   max-width: 22rem;
@@ -104,6 +106,69 @@ main {
   z-index: 10;
 }
 .graph-empty { padding: 2rem; color: var(--muted); text-align: center; }
+
+/* --- view filters --- */
+.filters {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  margin: 0.5rem 0 1.5rem;
+}
+.filters > details > summary {
+  cursor: pointer;
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.filters .filter-count { color: var(--muted); font-weight: 400; font-size: 0.85rem; }
+.filters .filter-reset {
+  margin-left: auto;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.1rem 0.5rem;
+  cursor: pointer;
+}
+.filter-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  padding: 0.4rem 0.9rem 0.9rem;
+  border-top: 1px solid var(--border);
+}
+.filter-group { border: 0; margin: 0; padding: 0; min-width: 12rem; }
+.filter-group legend { font-size: 0.8rem; color: var(--muted); padding: 0; margin-bottom: 0.3rem; }
+.filter-group .hint { font-weight: 400; font-size: 0.75rem; color: var(--muted); }
+.filter-cats label,
+.filter-kws label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  margin: 0.15rem 0.7rem 0.15rem 0;
+  white-space: nowrap;
+}
+.filter-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: var(--muted); }
+.filter-field input[type="text"],
+.filter-field select {
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.25rem 0.4rem;
+}
+.filter-text { display: flex; flex-direction: column; gap: 0.5rem; flex: 1 1 16rem; }
+.filter-misc { display: flex; flex-direction: column; gap: 0.5rem; }
+.filter-misc > label { font-size: 0.82rem; }
+
+.paper[hidden], .cluster[hidden] { display: none; }
 
 /* --- clusters + cards --- */
 .clusters h2 { margin: 1.5rem 0 0.5rem; }

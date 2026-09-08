@@ -35,8 +35,64 @@
   </p>
 </section>
 
+{% if atlas.nodes %}
+<section class="filters" hidden aria-label="View filters">
+  <details open>
+    <summary>
+      Filters <span class="filter-count"></span>
+      <button type="button" class="filter-reset">reset</button>
+    </summary>
+
+    <div class="filter-body">
+      <fieldset class="filter-group filter-cats">
+        <legend>Categories</legend>
+        {% for c in filter_categories %}
+        <label><input type="checkbox" name="cat" value="{{ c }}" checked> {{ c }}</label>
+        {% endfor %}
+      </fieldset>
+
+      {% if filter_keywords %}
+      <fieldset class="filter-group filter-kws">
+        <legend>Topics <span class="hint">(match any)</span></legend>
+        {% for k in filter_keywords %}
+        <label><input type="checkbox" name="kw" value="{{ k }}" checked> {{ k }}</label>
+        {% endfor %}
+      </fieldset>
+      {% endif %}
+
+      <div class="filter-group filter-text">
+        <label class="filter-field">
+          Also include <span class="hint">(comma-separated, matches title + abstract)</span>
+          <input type="text" name="include" placeholder="e.g. JWST, pulsar timing">
+        </label>
+        <label class="filter-field">
+          Exclude
+          <input type="text" name="exclude" placeholder="e.g. review, forecast">
+        </label>
+      </div>
+
+      <div class="filter-group filter-misc">
+        <label><input type="checkbox" name="priority-only"> Priority authors only</label>
+        <label class="filter-field">
+          Window
+          <select name="window">
+            <option value="0">All {{ window_dates | length }} day{{ "" if window_dates | length == 1 else "s" }}</option>
+            <option value="7">Last 7 days</option>
+            <option value="1">Today only</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  </details>
+</section>
+{% endif %}
+
 {% if today_count == 0 %}
 <p class="empty">No papers matched your filters in today's announcement. The atlas below still shows the recent window.</p>
+{% endif %}
+
+{% if atlas.nodes %}
+<script type="application/json" id="atlas-data">{{ atlas_json | safe }}</script>
 {% endif %}
 
 {% if atlas.window_size >= 2 %}
@@ -44,7 +100,6 @@
   <h2>Atlas</h2>
   <p class="atlas-hint">Nodes are papers, ringed if announced today. Lines connect similar papers. Drag to rearrange, scroll to zoom, click a node to jump to its card.</p>
   <div id="atlas-graph" data-rel="{{ rel }}"></div>
-  <script type="application/json" id="atlas-data">{{ atlas_json | safe }}</script>
 </section>
 {% endif %}
 
@@ -57,7 +112,7 @@
   <details class="cluster" open>
     <summary>
       <span class="cluster-label">{{ c.label or "(untitled)" }}</span>
-      <span class="cluster-count">{{ c.papers | length }} paper{{ "" if c.papers | length == 1 else "s" }}{% if c.today_count %}, {{ c.today_count }} today{% endif %}</span>
+      <span class="cluster-count" data-total="{{ c.papers | length }}">{{ c.papers | length }} paper{{ "" if c.papers | length == 1 else "s" }}{% if c.today_count %}, {{ c.today_count }} today{% endif %}</span>
     </summary>
     {% for p in c.papers %}{{ paper_card(p) }}{% endfor %}
   </details>
@@ -67,7 +122,7 @@
   <details class="cluster unclustered" open>
     <summary>
       <span class="cluster-label">Unclustered</span>
-      <span class="cluster-count">{{ unclustered | length }} paper{{ "" if unclustered | length == 1 else "s" }} with no close relative</span>
+      <span class="cluster-count" data-total="{{ unclustered | length }}">{{ unclustered | length }} paper{{ "" if unclustered | length == 1 else "s" }} with no close relative</span>
     </summary>
     {% for p in unclustered %}{{ paper_card(p) }}{% endfor %}
   </details>
@@ -78,4 +133,5 @@
 {% block scripts %}
 <script src="{{ rel }}assets/d3.v7.min.js"></script>
 <script src="{{ rel }}assets/graph.js"></script>
+<script src="{{ rel }}assets/filters.js"></script>
 {% endblock %}
