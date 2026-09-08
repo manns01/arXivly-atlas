@@ -337,8 +337,12 @@ No scikit-learn, no networkx. d3 v7 vendored, not a pip dep.
       exit 1, existing file untouched. Spot-checks pass: `2609.04308` cross-listed
       CO/HE/hep-ph, preamble stripped, LaTeX names normalized in `authors`/`surnames`.
       After adding first-initial author matching: **25 papers**, 41 unit tests pass.)*
-- [ ] 5. `git init`, first commit, push; user creates GitHub repo, sets Pages source =
+- [~] 5. `git init`, first commit, push; user creates GitHub repo, sets Pages source =
       GitHub Actions, enables Actions write permission.
+      *(2026-09-08: `git init` on `main` + first commit `e8c71e8` done locally
+      (14 files). **User still needs to:** create the GitHub repo, `git remote add
+      origin …`, `git push -u origin main`, then Settings → Pages → Source = GitHub
+      Actions and Settings → Actions → Workflow permissions = read/write.)*
 - [ ] 6. Minimal workflow + placeholder `docs/index.html`; run via `workflow_dispatch`;
       confirm artifact deploy works and `base_url` resolves at the real Pages URL —
       before the real templates exist.
