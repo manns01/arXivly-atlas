@@ -189,10 +189,44 @@ main {
 .filter-warn a { color: var(--ring); text-decoration: underline; }
 
 .paper[hidden], .cluster[hidden] { display: none; }
+.spot-item[hidden], .spotlight[hidden] { display: none; }
 
 @media (max-width: 34rem) {
   .filter-body { grid-template-columns: 1fr; }
 }
+
+/* --- spotlight (config-defined highlight sections) --- */
+.spotlight {
+  border: 1px solid var(--accent);
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: var(--accent-weak);
+  margin: 1.2rem 0 0.6rem;
+  padding: 0.7rem 0.9rem 0.85rem;
+}
+.spotlight h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.02rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.spot-badge {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.08rem 0.4rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+}
+.spot-count { color: var(--muted); font-size: 0.82rem; font-weight: 400; }
+.spot-list { margin: 0; padding-left: 1.1rem; }
+.spot-item { margin: 0.2rem 0; line-height: 1.4; }
+.spot-item > a { font-size: 0.92rem; }
+.spot-meta { color: var(--muted); font-size: 0.78rem; }
+.node.spot { stroke: var(--ring); stroke-width: 2px; }
 
 /* --- clusters + cards --- */
 .clusters h2 { margin: 1.5rem 0 0.5rem; }

@@ -129,7 +129,7 @@ class RenderSite(unittest.TestCase):
         self.assertEqual(obj["site_defaults"]["categories"], "astro-ph.CO")
         for n in obj["nodes"]:
             for key in ("text", "au", "starred", "categories", "keywords",
-                        "priority", "first_pubdate", "announce_type"):
+                        "priority", "first_pubdate", "announce_type", "spotlight"):
                 self.assertIn(key, n)
             self.assertNotIn("abstract", n)
             self.assertIsInstance(n["priority"], bool)
@@ -168,6 +168,43 @@ class RenderSite(unittest.TestCase):
         self.assertEqual(idx.count('id="paper-2"'), 1)
         # paper 2 first appeared on 09-04, newest day is 09-05
         self.assertIn("first seen 2026-09-04", idx)
+
+    def test_spotlight_section_lists_matching_papers(self):
+        cfg = dict(CONFIG)
+        cfg["spotlight"] = [{
+            "label": "ML in astro",
+            "match": ["neural network", "simulation-based inference"],
+        }]
+        with tempfile.TemporaryDirectory() as tmp:
+            raw = Path(tmp) / "raw"
+            raw.mkdir()
+            docs = Path(tmp) / "docs"
+            _write_day(raw / "2026-09-06.json", "2026-09-06", [
+                _raw_paper("10", "a convolutional neural network for cosmic shear",
+                           "we train a neural network on cosmological simulations"),
+                _raw_paper("11", "classical halo mass function",
+                           "press-schechter with no learning at all"),
+            ])
+            render_site(cfg, out_dir=docs, raw_dir=raw)
+            idx = (docs / "index.html").read_text()
+        self.assertIn('class="spotlight"', idx)
+        self.assertIn("ML in astro", idx)
+        # matching paper is linked in the section; the non-matching one is not
+        self.assertIn('href="#paper-10"', idx)
+        self.assertNotIn('href="#paper-11"', idx)
+        # the section links, it does not re-emit the card id (no dup DOM ids)
+        self.assertEqual(idx.count('id="paper-10"'), 1)
+        # the spotlight flag travels in the atlas json
+        obj = json.loads(re.search(r'id="atlas-data">(.*?)</script>', idx, re.S).group(1))
+        flags = {n["id"]: n["spotlight"] for n in obj["nodes"]}
+        self.assertTrue(flags["10"])
+        self.assertFalse(flags["11"])
+
+    def test_no_spotlight_key_renders_no_section(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            docs, _ = self._build(tmp)
+            idx = (docs / "index.html").read_text()
+        self.assertNotIn('class="spotlight"', idx)
 
     def test_archive_index_lists_days_reverse_chronological(self):
         with tempfile.TemporaryDirectory() as tmp:

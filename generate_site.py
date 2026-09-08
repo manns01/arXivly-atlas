@@ -73,8 +73,29 @@ def _decorate(papers: list[dict]) -> dict[str, dict]:
 MATCH_CHARS = 800
 
 
+def _spotlight_sections(config: dict, by_id: dict[str, dict]) -> list[dict]:
+    """Config-defined highlight sections rendered above the auto clusters: papers
+    whose title+abstract contains any of a section's ``match`` terms
+    (case-insensitive substring). ``by_id`` is already in today-first / score
+    order, so the filtered lists inherit it. A paper can land in several sections
+    and still also appears in its normal cluster."""
+    out = []
+    for sec in config.get("spotlight") or []:
+        terms = [str(t).lower() for t in (sec.get("match") or []) if str(t).strip()]
+        if not terms:
+            continue
+        papers = [
+            p for p in by_id.values()
+            if any(t in f"{p.get('title', '')} {p.get('abstract', '')}".lower()
+                   for t in terms)
+        ]
+        out.append({"label": sec.get("label", "Spotlight"), "papers": papers})
+    return out
+
+
 def _graph_nodes(atlas_nodes: list[dict], by_id: dict[str, dict],
-                 pubdate: str, match_chars: int) -> list[dict]:
+                 pubdate: str, match_chars: int,
+                 spotlight_ids: frozenset[str] = frozenset()) -> list[dict]:
     """Atlas nodes enriched with what the in-browser filters need to re-slice the
     view without a rebuild: a lowercased, truncated ``text`` (abstract) for
     substring matching, all ``categories``, the LaTeX/Unicode-normalized author
@@ -94,6 +115,7 @@ def _graph_nodes(atlas_nodes: list[dict], by_id: dict[str, dict],
             "priority": bool(p.get("matched_authors")),
             "announce_type": p.get("announce_type", ""),
             "first_pubdate": p.get("first_pubdate", pubdate),
+            "spotlight": n["id"] in spotlight_ids,
         })
     return out
 
@@ -118,6 +140,9 @@ def _day_context(window: list[Path], config: dict, generated_at: str,
     ]
     unclustered = [by_id[mid] for mid in atlas["unclustered"] if mid in by_id]
     today_count = sum(1 for p in papers if p["is_today"])
+
+    spotlight = _spotlight_sections(config, by_id)
+    spotlight_ids = frozenset(p["id"] for sec in spotlight for p in sec["papers"])
 
     days = sorted({p.get("first_pubdate", pubdate) for p in papers}, reverse=True)
 
@@ -152,7 +177,8 @@ def _day_context(window: list[Path], config: dict, generated_at: str,
         "today_count": today_count,
         "atlas": atlas,
         "atlas_json": _json_for_script({
-            "nodes": _graph_nodes(atlas["nodes"], by_id, pubdate, match_chars),
+            "nodes": _graph_nodes(atlas["nodes"], by_id, pubdate, match_chars,
+                                  spotlight_ids),
             "links": atlas["links"],
             "days": days,
             "corpus_categories": corpus_categories,
@@ -168,6 +194,7 @@ def _day_context(window: list[Path], config: dict, generated_at: str,
         }),
         "clusters": clusters,
         "unclustered": unclustered,
+        "spotlight": spotlight,
         "has_site_defaults": bool(config.get("keywords") or config.get("authors")),
         "suggest_categories": suggest_categories,
         "suggest_topics": suggest_topics,

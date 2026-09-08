@@ -181,6 +181,14 @@ AI features (summarizing, idea brainstorming).
   may become the real limiter; scoring order matters more than the include filter.
 - `CLAUDE.md` mentions `PROGRESS_glowGRF.md` in places; the file in use is this one,
   `PROGRESS.md`.
+- **Cosmology coverage + spotlight (done 2026-09-08).** `config.yaml` `keywords` grew a
+  cosmology block (facilities: JWST/Roman/Euclid/Rubin/LSST/DESI…; dark-energy &
+  tensions: `evolving dark energy`/`w0waCDM`/`Hubble tension`…; LSS & lensing probes;
+  ML-in-astro). `exclude_keywords` now drops hep-ph collider noise
+  (`LHC`/`collider`/`parton …`). New `spotlight:` config block → always-on highlight
+  sections above the clusters (first entry: "ML in cosmology & astro"). `max_papers_per_day`
+  kept at 200 by user request — the keyword scores are what lift these papers out of the
+  truncated tail. Next-level topic structure is in **Roadmap — beyond v1** below.
 
 ---
 
@@ -482,3 +490,58 @@ default under `filter_mode: all`.
   nothing and leaves the previous site intact.
 - **Rolling window:** after ≥2 daily runs, the atlas spans multiple days and the archive
   index lists each.
+
+---
+
+## Roadmap — beyond v1
+
+Recorded 2026-09-08 from a design conversation about making cosmology (DESI / dark energy
+/ Hubble tension) first-class and giving the atlas real topic structure. **Not built.**
+The keyword + `spotlight:` work already shipped (see *Open items*) is the flat precursor.
+
+### 1. Literature-generated topic *tree*
+
+Target: a cosmologist opens the atlas and sees, generated from the window (not hand-drawn):
+
+```
+            Dark Energy
+                │
+     ┌──────────┼──────────┐
+ Modified GR  DESI / BAO  H0 tension
+     │                        │
+  f(R), EFT              Supernovae, SH0ES
+```
+
+`build_atlas.average_linkage()` (`build_atlas.py:176-207`) already computes the full merge
+dendrogram, then throws it away by cutting flat once at `distance_threshold: 0.92`. Keep
+the tree: expose 2–3 cut levels, label each internal node by distinctive terms
+(`label_cluster`), render as nested `<details>` and/or a collapsible graph.
+Medium change; data model stays paper = node.
+**Open question:** replace the flat cluster list on the page, or add a separate "map" view.
+
+### 2. Research knowledge graph
+
+Promote the fundamental object from *paper* to *research entity*. Typed nodes —
+**Person, Paper, Method, Topic, Dataset** — with typed edges (`wrote`, `uses`, `studies`,
+`related-to`):
+
+```
+ Person ──wrote──▶ Paper ──uses──▶ Method
+                    │                 │
+                 studies              ▼
+                    ▼               Topic ◀──related-to──▶ Dataset
+```
+
+Needs: an entity schema; a file-based entity store (no DB, per `CLAUDE.md`); a multi-type
+graph view (extend `graph.js` or a new one). Architecturally separable from #1 — the
+topic tree can feed the `Topic` nodes.
+
+### 3. Entity-extraction pass (feeds #2)
+
+- **Deterministic first:** `Person` from arXiv metadata (already have `author_keys`);
+  `Dataset` / `Method` / `Facility` from a curated gazetteer — the `config.yaml` cosmology
+  keyword block is the seed list.
+- **LLM extraction later:** a pass over title+abstract for entities/relations the gazetteer
+  misses. This is the "easy to integrate agentic AI features later" the brief anticipates;
+  must stay within "no new runtime deps / reliability first" (cache results to
+  `data/derived/`, degrade to the deterministic pass if the call fails).

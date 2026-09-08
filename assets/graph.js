@@ -53,7 +53,9 @@
 
   var node = root.append("g").selectAll("circle")
     .data(nodes).join("circle")
-    .attr("class", function (d) { return "node" + (d.is_today ? " today" : ""); })
+    .attr("class", function (d) {
+      return "node" + (d.is_today ? " today" : "") + (d.spotlight ? " spot" : "");
+    })
     .attr("r", nodeRadius)
     .attr("fill", nodeColour)
     .attr("stroke", "var(--card)")

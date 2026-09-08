@@ -130,6 +130,30 @@
 </section>
 {% endif %}
 
+{% for sec in spotlight %}
+<section class="spotlight">
+  <h2>
+    <span class="spot-badge">spotlight</span> {{ sec.label }}
+    <span class="spot-count" data-total="{{ sec.papers | length }}">{{ sec.papers | length }}</span>
+  </h2>
+  {% if sec.papers %}
+  <ul class="spot-list">
+    {% for p in sec.papers %}
+    <li class="spot-item" data-id="{{ p.id }}">
+      <a href="#paper-{{ p.id }}">{{ p.title }}</a>
+      <span class="spot-meta">
+        {% if p.authors %}{{ p.authors[0] }}{% if p.authors | length > 1 %} et al.{% endif %}{% endif %}
+        {%- if p.is_today %} · today{% endif %}
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">Nothing in the current window matches this spotlight.</p>
+  {% endif %}
+</section>
+{% endfor %}
+
 <section class="clusters">
   <h2>Clusters</h2>
   {% if not atlas.clusters %}

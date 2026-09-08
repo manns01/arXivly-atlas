@@ -18,6 +18,7 @@ filter_mode: all
 
 keywords:                            # plain case-insensitive substring on title+abstract
                                      # under filter_mode: all these only rank + seed the UI fields
+  # lensing / GW / dark matter (original set)
   - gravitational lensing
   - wave optics
   - microlensing
@@ -31,7 +32,102 @@ keywords:                            # plain case-insensitive substring on title
   - cosmology
   - stochastic gravitational waves
   - supermassive black holes
-exclude_keywords: []
+  # observational cosmology -- facilities & surveys
+  # NOTE: 'Euclid ' / 'DESI ' keep the trailing space (quoted) on purpose:
+  # bare "Euclid" hits "Euclidean", bare "DESI" hits "design/desire/desired".
+  - JWST
+  - James Webb
+  - Roman Space Telescope
+  - Nancy Grace Roman
+  - 'Euclid '
+  - Vera Rubin
+  - Rubin Observatory
+  - LSST
+  - Extremely Large Telescope
+  - Square Kilometre Array
+  - Simons Observatory
+  - CMB-S4
+  - 'DESI '
+  - Dark Energy Spectroscopic Instrument
+  - Dark Energy Survey
+  - KiDS
+  - Hyper Suprime-Cam
+  # dark energy & cosmological tensions (data-driven, not hard-core theory)
+  - dark energy
+  - evolving dark energy
+  - dynamical dark energy
+  - dark energy equation of state
+  - w0waCDM
+  - w0wa
+  - quintessence
+  - Hubble tension
+  - Hubble constant
+  - H0 tension
+  - S8 tension
+  - sigma8
+  - cosmological tensions
+  # distance ladder / SN cosmology
+  - distance ladder
+  - Cepheid
+  - Type Ia supernova
+  - SH0ES
+  - TRGB
+  - standard siren
+  - time-delay cosmography
+  # large-scale structure & lensing probes
+  - baryon acoustic oscillation
+  - large-scale structure
+  - redshift-space distortion
+  - cosmic shear
+  - weak-lensing shear
+  - intrinsic alignment
+  - 3x2pt
+  - CMB lensing
+  - growth of structure
+  - reionization
+  - cosmic dawn
+  - little red dots
+  - high-redshift galaxies
+  # ML in astro/cosmo (also drives the `spotlight` section below)
+  - machine learning
+  - deep learning
+  - neural network
+  - convolutional neural network
+  - graph neural network
+  - transformer
+  - normalizing flow
+  - simulation-based inference
+  - likelihood-free inference
+  - neural posterior estimation
+  - emulator
+  - Gaussian process
+  - physics-informed neural network
+  - diffusion model
+  - foundation model
+  - self-supervised
+  - anomaly detection
+
+# Dropped on a single substring hit anywhere in title+abstract, regardless of
+# filter_mode. Aimed at hep-ph collider-experiment noise. Trimming lines softens
+# it (e.g. "collider"/"LHC" also drop DM papers that only mention colliders).
+exclude_keywords:
+  - Large Hadron Collider
+  - LHC
+  - collider
+  - hadron collider
+  - parton distribution
+  - parton shower
+  - jet substructure
+
+# Always-on, keyword-defined sections rendered above the auto clusters. Each
+# paper whose title+abstract contains any `match` term (case-insensitive
+# substring) is listed; it also still appears in its normal cluster below.
+spotlight:
+  - label: "ML in cosmology & astro"
+    match: [machine learning, deep learning, neural network, normalizing flow,
+            simulation-based inference, likelihood-free inference, emulator,
+            graph neural network, transformer, diffusion model, foundation model,
+            physics-informed neural network, neural posterior estimation]
 
 # Priority authors. Matched on the LaTeX/Unicode-normalized surname, exactly
 # (never a substring). Two forms:

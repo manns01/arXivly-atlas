@@ -80,6 +80,12 @@
     if (el) el.dataset.original = el.textContent;
   });
 
+  // Spotlight sections (config-defined highlights above the clusters). Their
+  // rows link to the same paper ids, so they follow the same visible set. Not
+  // added to the paper count -- they are duplicates of cluster cards.
+  var spotItems = toArray(document.querySelectorAll(".spotlight .spot-item"));
+  var spotSections = toArray(document.querySelectorAll(".spotlight"));
+
   panel.hidden = false;
 
   var KNOWN = FIELDS.concat(["prio", "win"]);
@@ -249,6 +255,19 @@
       cEl.textContent = narrowed
         ? shown + " of " + (cEl.dataset.total || shown) + " shown"
         : cEl.dataset.original;
+    });
+
+    spotItems.forEach(function (li) {
+      li.hidden = !ids.has(li.dataset.id);
+    });
+    spotSections.forEach(function (sec) {
+      var shown = sec.querySelectorAll(".spot-item:not([hidden])").length;
+      sec.hidden = spotItems.length > 0 && shown === 0;
+      var cEl = sec.querySelector(".spot-count");
+      if (!cEl) return;
+      cEl.textContent = narrowed
+        ? shown + " of " + (cEl.dataset.total || shown)
+        : (cEl.dataset.total || String(shown));
     });
 
     if (countEl) {
