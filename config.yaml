@@ -104,7 +104,6 @@ atlas:
 site:
   title: arXivly-atlas
   base_url: /arXivly-atlas           # "" for a user/organization site or custom domain
-  repo_url: ""                       # e.g. https://github.com/you/arXivly-atlas -- used by the
-                                     # "unknown category" hint; hint shows text-only when blank
+  repo_url: "https://github.com/manns01/arXivly-atlas"   # used by the "unknown category" hint
   match_chars: 800                   # chars of abstract embedded per paper for in-browser filtering
   max_papers_per_day: 200            # >= typical daily volume, so today is never truncated
