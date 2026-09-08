@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ pubdate }} — {{ site.title }}{% endblock %}
+
+{% macro paper_card(p) %}
+<article class="paper" id="paper-{{ p.id }}">
+  <h3 class="paper-title">
+    <a href="{{ p.link }}">{{ p.title }}</a>
+  </h3>
+  <p class="paper-meta">
+    <span class="authors">{{ p.authors | join(", ") }}</span>
+  </p>
+  <p class="paper-badges">
+    {% for c in p.categories %}<span class="cat">{{ c }}</span>{% endfor %}
+    <span class="announce announce-{{ p.announce_type }}">{{ p.announce_type }}</span>
+    {% if not p.is_today %}<span class="seen">first seen {{ p.first_pubdate }}</span>{% endif %}
+    {% if p.matched_authors %}<span class="badge-author">★ {{ p.matched_authors | join(", ") }}</span>{% endif %}
+  </p>
+  {% if p.snippet %}<p class="paper-abstract">{{ p.snippet }}</p>{% endif %}
+  <p class="paper-links">
+    <a href="{{ p.link }}">abs</a>
+    <a href="{{ p.pdf }}">pdf</a>
+    {% if p.matched_keywords %}<span class="kw">matched: {{ p.matched_keywords | join(", ") }}</span>{% endif %}
+  </p>
+</article>
+{% endmacro %}
+
+{% block content %}
+<section class="day-header">
+  <h1>{{ pubdate }}</h1>
+  <p class="updated">Last updated: {{ generated_at }} UTC</p>
+  <p class="summary">
+    {{ today_count }} paper{{ "" if today_count == 1 else "s" }} announced today ·
+    atlas over {{ window_days }} announcement day{{ "" if window_days == 1 else "s" }}
+    ({{ atlas.window_size }} papers, {{ atlas.clusters | length }} cluster{{ "" if atlas.clusters | length == 1 else "s" }})
+  </p>
+</section>
+
+{% if today_count == 0 %}
+<p class="empty">No papers matched your filters in today's announcement. The atlas below still shows the recent window.</p>
+{% endif %}
+
+{% if atlas.window_size >= 2 %}
+<section class="atlas">
+  <h2>Atlas</h2>
+  <p class="atlas-hint">Nodes are papers, ringed if announced today. Lines connect similar papers. Drag to rearrange, scroll to zoom, click a node to jump to its card.</p>
+  <div id="atlas-graph" data-rel="{{ rel }}"></div>
+  <script type="application/json" id="atlas-data">{{ atlas_json | safe }}</script>
+</section>
+{% endif %}
+
+<section class="clusters">
+  <h2>Clusters</h2>
+  {% if not atlas.clusters %}
+  <p class="empty">Not enough papers in the window to form clusters yet.</p>
+  {% endif %}
+  {% for c in clusters %}
+  <details class="cluster" open>
+    <summary>
+      <span class="cluster-label">{{ c.label or "(untitled)" }}</span>
+      <span class="cluster-count">{{ c.papers | length }} paper{{ "" if c.papers | length == 1 else "s" }}{% if c.today_count %}, {{ c.today_count }} today{% endif %}</span>
+    </summary>
+    {% for p in c.papers %}{{ paper_card(p) }}{% endfor %}
+  </details>
+  {% endfor %}
+
+  {% if unclustered %}
+  <details class="cluster unclustered" open>
+    <summary>
+      <span class="cluster-label">Unclustered</span>
+      <span class="cluster-count">{{ unclustered | length }} paper{{ "" if unclustered | length == 1 else "s" }} with no close relative</span>
+    </summary>
+    {% for p in unclustered %}{{ paper_card(p) }}{% endfor %}
+  </details>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ rel }}assets/d3.v7.min.js"></script>
+<script src="{{ rel }}assets/graph.js"></script>
+{% endblock %}

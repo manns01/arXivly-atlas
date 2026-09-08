@@ -58,20 +58,21 @@ _STOPWORDS = {
 
 # --- window loading ---------------------------------------------------------
 
-def load_window(raw_dir: Path = RAW_DIR, window_days: int = DEFAULTS["window_days"]
-                ) -> tuple[str, list[dict]]:
-    """Load the newest ``data/raw/*.json`` plus up to ``window_days - 1`` earlier
-    files, dedupe papers by arXiv id (keep the earliest appearance), and tag each
-    paper ``is_today`` if it is in the newest file.
+def raw_files(raw_dir: Path = RAW_DIR) -> list[Path]:
+    """All non-empty ``data/raw/*.json`` paths, oldest name first."""
+    return sorted(p for p in Path(raw_dir).glob("*.json") if p.stat().st_size > 0)
 
-    Returns ``(pubdate_of_newest, papers)``; ``("", [])`` if no raw files exist.
+
+def load_window_files(window: list[Path]) -> tuple[str, list[dict]]:
+    """Dedupe papers across an explicit, chronologically ordered list of raw
+    files (keep the earliest appearance), tag each ``is_today`` if it is in the
+    last file, and return ``(pubdate_of_last_file, papers)``.
+
+    ``([])`` in -> ``("", [])`` out.
     """
-    files = sorted(p for p in Path(raw_dir).glob("*.json") if p.stat().st_size > 0)
-    if not files:
+    if not window:
         return "", []
-    window = files[-window_days:]
     newest = window[-1]
-
     today_pubdate = json.loads(newest.read_text()).get("pubdate", newest.stem)
     today_ids: set[str] = set()
     seen: dict[str, dict] = {}
@@ -89,6 +90,13 @@ def load_window(raw_dir: Path = RAW_DIR, window_days: int = DEFAULTS["window_day
     # Today's papers first, then by score, then id -- stable, deterministic order.
     papers.sort(key=lambda p: (not p["is_today"], -p.get("score", 0), p["id"]))
     return today_pubdate, papers
+
+
+def load_window(raw_dir: Path = RAW_DIR, window_days: int = DEFAULTS["window_days"]
+                ) -> tuple[str, list[dict]]:
+    """Load the newest ``data/raw/*.json`` plus up to ``window_days - 1`` earlier
+    files. See :func:`load_window_files`."""
+    return load_window_files(raw_files(raw_dir)[-window_days:])
 
 
 # --- TF-IDF ----------------------------------------------------------------

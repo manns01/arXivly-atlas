@@ -1,0 +1,164 @@
+/* arXivly-atlas — minimal readable styles, light + dark. */
+
+:root {
+  --bg: #fbfbf9;
+  --fg: #1f2328;
+  --muted: #6a737d;
+  --border: #e3e3df;
+  --card: #ffffff;
+  --accent: #2f6f4f;
+  --accent-weak: #e8f1eb;
+  --ring: #d98324;
+  --max: 62rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181c;
+    --fg: #e6e6e3;
+    --muted: #9aa0a6;
+    --border: #2c2f36;
+    --card: #1d2024;
+    --accent: #6fbf95;
+    --accent-weak: #1f2e27;
+    --ring: #e0993f;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.site-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 1.2rem 1.25rem 0.8rem;
+}
+.site-title { font-weight: 700; font-size: 1.15rem; color: var(--fg); }
+.site-nav a { margin-left: 1rem; color: var(--muted); }
+
+main {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 1.25rem 3rem;
+}
+
+.site-footer {
+  max-width: var(--max);
+  margin: 2rem auto 3rem;
+  padding: 1rem 1.25rem 0;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.85rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.day-header h1 { margin: 0.6rem 0 0.2rem; font-size: 1.7rem; }
+.updated { margin: 0.1rem 0; color: var(--muted); font-size: 0.85rem; }
+.summary { margin: 0.3rem 0 1.2rem; color: var(--muted); }
+.empty { color: var(--muted); font-style: italic; }
+
+/* --- atlas graph --- */
+.atlas { margin: 1.5rem 0 2rem; }
+.atlas h2 { margin-bottom: 0.3rem; }
+.atlas-hint { margin: 0 0 0.6rem; color: var(--muted); font-size: 0.85rem; }
+#atlas-graph {
+  width: 100%;
+  height: 520px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  overflow: hidden;
+}
+#atlas-graph svg { width: 100%; height: 100%; display: block; cursor: grab; }
+#atlas-graph .node { stroke-width: 1.5px; cursor: pointer; }
+#atlas-graph .node.today { stroke: var(--ring); stroke-width: 2.5px; }
+#atlas-graph .link { stroke: var(--muted); stroke-opacity: 0.35; }
+#atlas-graph .label { font-size: 10px; fill: var(--muted); pointer-events: none; }
+.graph-tooltip {
+  position: absolute;
+  max-width: 22rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--fg);
+  color: var(--bg);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+  z-index: 10;
+}
+.graph-empty { padding: 2rem; color: var(--muted); text-align: center; }
+
+/* --- clusters + cards --- */
+.clusters h2 { margin: 1.5rem 0 0.5rem; }
+.cluster {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.6rem 0;
+  background: var(--card);
+}
+.cluster > summary {
+  cursor: pointer;
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+.cluster-label { font-weight: 600; }
+.unclustered .cluster-label { color: var(--muted); }
+.cluster-count { color: var(--muted); font-size: 0.82rem; }
+
+.paper {
+  border-top: 1px solid var(--border);
+  padding: 0.8rem 0.9rem;
+}
+.paper-title { margin: 0 0 0.25rem; font-size: 1.02rem; line-height: 1.35; }
+.paper-meta { margin: 0.1rem 0; font-size: 0.85rem; color: var(--muted); }
+.paper-badges { margin: 0.35rem 0; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+.paper-badges .cat,
+.paper-badges .announce,
+.paper-badges .seen,
+.paper-badges .badge-author {
+  font-size: 0.72rem;
+  padding: 0.08rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.paper-badges .announce-new { color: var(--accent); border-color: var(--accent); }
+.paper-badges .badge-author { color: var(--ring); border-color: var(--ring); }
+.paper-abstract { margin: 0.4rem 0; font-size: 0.9rem; }
+.paper-links { margin: 0.3rem 0 0; font-size: 0.85rem; display: flex; gap: 0.8rem; flex-wrap: wrap; }
+.paper-links .kw { color: var(--muted); }
+
+.paper:target { background: var(--accent-weak); }
+
+/* --- archive table --- */
+.archive-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+.archive-table th, .archive-table td {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.archive-table th { color: var(--muted); font-weight: 600; font-size: 0.85rem; }
+
+@media (max-width: 34rem) {
+  #atlas-graph { height: 400px; }
+  .site-header { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+}

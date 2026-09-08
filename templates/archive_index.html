@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Archive — {{ site.title }}{% endblock %}
+
+{% block content %}
+<section class="day-header">
+  <h1>Archive</h1>
+  <p class="summary">{{ days | length }} announcement day{{ "" if days | length == 1 else "s" }} built so far.</p>
+</section>
+
+<table class="archive-table">
+  <thead>
+    <tr><th>Day</th><th>Today's papers</th><th>Clusters</th></tr>
+  </thead>
+  <tbody>
+    {% for d in days %}
+    <tr>
+      <td><a href="{{ rel }}archive/{{ d.pubdate }}.html">{{ d.pubdate }}</a></td>
+      <td>{{ d.today_count }}</td>
+      <td>{{ d.cluster_count }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

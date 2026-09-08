@@ -358,9 +358,25 @@ No scikit-learn, no networkx. d3 v7 vendored, not a pip dep.
       git-ignored `data/derived/<pubdate>.json`. 0/1-paper guards return an empty atlas.
       20 new unit tests (61 total pass). Thresholds unchanged from `config.yaml`
       measured defaults — retune when the window fills.)*
-- [ ] 8. `templates/`, `generate_site.py`, `assets/` (CSS, `graph.js`, vendored d3) —
-      open `docs/index.html` locally; check graph, links, collapsibles, "last updated".
-- [ ] 9. `build.py` orchestrator; wire real build into the workflow.
+- [x] 8. `templates/`, `generate_site.py`, `assets/` (CSS, `graph.js`, vendored d3).
+      *(2026-09-08: `templates/{base,day,archive_index}.html` (Jinja2, autoescape),
+      `assets/{style.css,graph.js,d3.v7.min.js}` (d3 7.9.0 vendored from cdnjs,
+      279 KB). `generate_site.py`: `render_site()` iterates `data/raw/*.json`, builds
+      the window ending at each day, writes `docs/archive/<date>.html` + newest as
+      `docs/index.html` + `docs/archive/index.html`. **Deviation from plan:** asset/nav
+      links are written **relative** (`""` from index, `../` from archive/) instead of
+      `base_url`-absolute, so the site opens correctly from `file://` and any path;
+      `site.base_url` now feeds only `<link rel="canonical">`. Atlas JSON is embedded
+      via `_json_for_script` (`<`/`>`/`&` → `\uXXXX`; `<script>` is raw-text so HTML
+      entities would NOT be decoded — must be literal JSON). 8 new unit tests.
+      Verified structurally (25 cards, 5 clusters + Unclustered, "Last updated",
+      d3 before graph.js, JSON re-parses, every local ref resolves). **Not yet
+      eyeballed in a browser — Chrome extension declined this session; a local
+      `python -m http.server docs/` check is still owed.**)*
+- [x] 9. `build.py` orchestrator. *(2026-09-08: `python build.py` = fetch → atlas →
+      generate; `--date YYYY-MM-DD` skips fetch and rebuilds from existing
+      `data/raw/`. Any stage's non-zero exit stops and propagates. 5 unit tests.)*
+      Still to do: wire the real build into the workflow (part of step 6).
 - [ ] 10. `README.md`; final PROGRESS.md pass.
 
 ## Verification
