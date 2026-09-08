@@ -21,6 +21,19 @@ AI features (summarizing, idea brainstorming).
   critic against live arXiv (two passes; the second measured the whole pipeline on the
   Mon 7 Sep 2026 announcement day), plan revised and saved below. User will continue in
   the afternoon.
+- **2026-09-08 (late)** — Post-v1 polish. (a) Fixed the atlas tooltip landing in the
+  page corner — `#atlas-graph` had no `position`, so the `absolute` tooltip resolved
+  against the viewport while the JS positioned it relative to the graph box; added
+  `position: relative` + cursor-following clamp (a follow-up tooltip-offset report is
+  being chased separately). (b) **In-browser view filters** added: CI still fetches the
+  broad keyword net, but `generate_site.py` now embeds full per-paper metadata + the
+  keyword/category/day lists in `#atlas-data`, and a new `assets/filters.js` +
+  Filters panel in `day.html` re-slice the page live (categories, topics match-any,
+  free-text include/exclude, priority-authors-only, 1/7/all-day window). Shows/hides
+  cards, collapses empty clusters, dims the graph via new
+  `window.atlasGraph.setVisible()`; state in URL hash + localStorage; degrades to
+  "show everything" with no JS. What still needs a config edit + rebuild: which
+  categories are fetched and how wide the keyword net is. 76 unit tests pass.
 - **2026-09-08 (evening)** — Steps 7, 8, 9 done; 6 and 10 written but not yet
   exercised end-to-end on GitHub. `build_atlas.py` + `generate_site.py` + `build.py`
   + templates + assets (d3 vendored) + `.github/workflows/daily_arxiv.yml` + `README.md`
