@@ -411,20 +411,17 @@ No scikit-learn, no networkx. d3 v7 vendored, not a pip dep.
       exit 1, existing file untouched. Spot-checks pass: `2609.04308` cross-listed
       CO/HE/hep-ph, preamble stripped, LaTeX names normalized in `authors`/`surnames`.
       After adding first-initial author matching: **25 papers**, 41 unit tests pass.)*
-- [~] 5. `git init`, first commit, push; user creates GitHub repo, sets Pages source =
-      GitHub Actions, enables Actions write permission.
-      *(2026-09-08: `git init` on `main` + first commit `e8c71e8` done locally
-      (14 files). **User still needs to:** create the GitHub repo, `git remote add
-      origin …`, `git push -u origin main`, then Settings → Pages → Source = GitHub
-      Actions and Settings → Actions → Workflow permissions = read/write.)*
-- [~] 6. GitHub Actions workflow. *(2026-09-08: `.github/workflows/daily_arxiv.yml`
-      written — cron `23 7 * * 1-5` + `workflow_dispatch`; `build` job (checkout,
-      setup-python 3.11 + pip cache, `pip install -r requirements.txt`, `python
-      build.py`, commit only `data/raw/` if changed, `upload-pages-artifact docs/`);
-      `deploy` job (`deploy-pages`, `needs: build`); `concurrency: daily-arxiv`.
-      Templates already exist so no placeholder page. **User still needs to push +
-      configure Pages (step 5) then run it once via the Actions tab and confirm the
-      live URL.**)*
+- [x] 5. `git init`, first commit, push; GitHub repo + Pages + Actions perms.
+      *(2026-09-08: done. Repo **`manns01/arXivly-atlas`** (public) created via the
+      GitHub API using the macOS-keychain PAT; `main` pushed; Actions workflow
+      permissions → write; Pages source → GitHub Actions; `site.repo_url` set.)*
+- [x] 6. GitHub Actions workflow. *(2026-09-08: `.github/workflows/daily_arxiv.yml`
+      — cron `23 7 * * 1-5` + `workflow_dispatch`; `build` job (checkout, setup-python
+      3.11 + pip cache, `pip install -r requirements.txt`, `python build.py`, commit
+      only `data/raw/` if changed, `upload-pages-artifact docs/`); `deploy` job
+      (`deploy-pages`, `needs: build`); `concurrency: daily-arxiv`. **Run via
+      `workflow_dispatch` 3×, all green; site live at
+      https://manns01.github.io/arXivly-atlas/.**)*
 - [x] 7. `build_atlas.py` — verify clusters/edges/labels on the window; tune `knn` /
       `distance_threshold`. *(2026-09-08: implemented — `load_window` (rolling window,
       dedupe keep-earliest, `is_today` tag), hand-rolled TF-IDF (`tf·(log((N+1)/(df+1))+1)`,
@@ -451,13 +448,21 @@ No scikit-learn, no networkx. d3 v7 vendored, not a pip dep.
       `python -m http.server docs/` check is still owed.**)*
 - [x] 9. `build.py` orchestrator. *(2026-09-08: `python build.py` = fetch → atlas →
       generate; `--date YYYY-MM-DD` skips fetch and rebuilds from existing
-      `data/raw/`. Any stage's non-zero exit stops and propagates. 5 unit tests.)*
-      Still to do: wire the real build into the workflow (part of step 6).
-- [x] 10. `README.md`. *(2026-09-08: written — what it is, local quick start,
-      full `config.yaml` table incl. keyword-substring + author surname/initial
-      semantics, GitHub Pages deploy steps, "how the atlas is built", extension
-      seams (`similarity.method`, `label_cluster`, immutable `data/raw`).)*
-      Final PROGRESS pass still owed once the site is confirmed live.
+      `data/raw/`. Any stage's non-zero exit stops and propagates. Wired into the
+      workflow. 5 unit tests.)*
+- [x] 10. `README.md`. *(2026-09-08: full config table (incl. `filter_mode`,
+      window caps, `match_chars`, `repo_url`), the "Filtering: two layers" section
+      + predicate, deploy steps, "how the atlas is built", extension seams.)*
+
+**v1 shipped 2026-09-08.** All 10 build-order steps done; site live at
+https://manns01.github.io/arXivly-atlas/ ; daily cron armed (`23 7 * * 1-5` UTC);
+80 offline unit tests pass. Post-v1 in the same session: in-browser free-form
+filters (empty-by-default + Save), broad→trimmed fetch net
+(`categories: [astro-ph, gr-qc, hep-ph]`, `filter_mode: all`, `window_days: 5`,
+`max_window_papers: 400`), tooltip + footer fixes. **Still to tune on a real
+announcement day** (2026-09-08 feeds were empty): broad-net volume vs. the
+1 MB/page budget, `window_days: 5` atlas quality, and the `stoplist_keywords`
+default under `filter_mode: all`.
 
 ## Verification
 
