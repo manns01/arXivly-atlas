@@ -1,19 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <defs>
-    <linearGradient id="beam" x1="0.15" y1="1" x2="0.7" y2="0">
-      <stop offset="0" stop-color="#ffe0a3"/>
-      <stop offset="0.4" stop-color="#ff9d3c"/>
-      <stop offset="0.75" stop-color="#d1490b"/>
-      <stop offset="1" stop-color="#5c1d0a"/>
-    </linearGradient>
-    <radialGradient id="halo" cx="0.5" cy="0.62" r="0.55">
-      <stop offset="0.45" stop-color="#ff9d3c" stop-opacity="0"/>
-      <stop offset="0.72" stop-color="#ff9d3c" stop-opacity="0.5"/>
-      <stop offset="1" stop-color="#ff9d3c" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <rect width="32" height="32" rx="7" fill="#08080c"/>
-  <circle cx="16" cy="16.5" r="11.5" fill="url(#halo)"/>
-  <circle cx="16" cy="16" r="9.2" fill="url(#beam)"/>
-  <circle cx="16" cy="15.2" r="6" fill="#08080c"/>
+  <rect width="32" height="32" rx="7" fill="#7c3aed"/>
+  <g fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round">
+    <path d="M16 16 C 19.2 12.8, 22.4 14, 22.4 17.6 C 22.4 21.2, 19.4 23.2, 15.4 22.6"/>
+    <path d="M16 16 C 12.8 19.2, 9.6 18, 9.6 14.4 C 9.6 10.8, 12.6 8.8, 16.6 9.4"/>
+  </g>
 </svg>
