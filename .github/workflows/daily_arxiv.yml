@@ -2,8 +2,13 @@ name: daily-arxiv
 
 on:
   schedule:
-    # 07:23 UTC, weekdays. After arXiv's ~04:00 UTC feed rebuild; :23 dodges the
-    # top-of-hour scheduler backlog.
+    # Primary: 03:31 UTC (~09:01 IST), weekdays. arXiv announces at 00:00 UTC
+    # (01:00 UTC in winter) and its feeds settle within ~1-2h, so this has a
+    # safe margin year-round while still landing before a 9am read.
+    - cron: "31 3 * * 1-5"
+    # Backup: 07:23 UTC (~12:53 IST). Covers a primary run that GitHub delayed
+    # past the feed or dropped entirely. fetch_arxiv is idempotent -- if the
+    # primary already wrote data/raw/<date>.json this run just rebuilds from it.
     - cron: "23 7 * * 1-5"
   workflow_dispatch:
 
