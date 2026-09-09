@@ -204,3 +204,7 @@ site:
   default_window: today              # today | all -- initial state of the header window toggle
   graph_default: map                 # map | papers -- the atlas view shown first
   graph_labels: 20                   # max labelled nodes in the paper-level graph
+
+  # Quick links in the header to arXiv's own "new" listing pages -- for when you
+  # want to browse a bulletin directly. Each entry -> https://arxiv.org/list/<x>/new
+  arxiv_links: [astro-ph.CO, astro-ph.HE]

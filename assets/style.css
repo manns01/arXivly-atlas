@@ -47,7 +47,16 @@ a:hover { text-decoration: underline; }
   padding: 1.2rem 1.25rem 0.8rem;
 }
 .site-title { font-weight: 700; font-size: 1.15rem; color: var(--fg); }
-.site-nav a { margin-left: 1rem; color: var(--muted); }
+.site-nav { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 1rem; }
+.site-nav a { color: var(--muted); }
+.nav-ext-lead {
+  margin-left: 0.5rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.site-nav a.nav-ext { font-size: 0.85rem; }
 
 main {
   max-width: var(--max);

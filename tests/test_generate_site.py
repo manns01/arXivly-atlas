@@ -208,6 +208,30 @@ class RenderSite(unittest.TestCase):
         self.assertTrue(flags["10"])
         self.assertFalse(flags["11"])
 
+    def test_arxiv_quick_links_in_header(self):
+        cfg = dict(CONFIG)
+        cfg["site"] = {**CONFIG["site"], "arxiv_links": ["astro-ph.CO", "astro-ph.HE"]}
+        with tempfile.TemporaryDirectory() as tmp:
+            raw = Path(tmp) / "raw"
+            raw.mkdir()
+            _write_day(raw / "2026-09-06.json", "2026-09-06", [
+                _raw_paper("30", "a", "b"), _raw_paper("31", "c", "d"),
+            ])
+            docs = Path(tmp) / "docs"
+            render_site(cfg, out_dir=docs, raw_dir=raw)
+            idx = (docs / "index.html").read_text()
+            arch = (docs / "archive/index.html").read_text()
+        for h in (idx, arch):                       # base.html -> every page
+            self.assertIn('href="https://arxiv.org/list/astro-ph.CO/new"', h)
+            self.assertIn('href="https://arxiv.org/list/astro-ph.HE/new"', h)
+            self.assertIn('target="_blank"', h)
+
+    def test_no_arxiv_links_when_unset(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            docs, _ = self._build(tmp)
+            idx = (docs / "index.html").read_text()
+        self.assertNotIn("arxiv.org/list/", idx)
+
     def test_no_spotlight_key_renders_no_section(self):
         with tempfile.TemporaryDirectory() as tmp:
             docs, _ = self._build(tmp)

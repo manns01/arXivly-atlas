@@ -14,6 +14,10 @@
     <nav class="site-nav">
       <a href="{{ rel }}index.html">Today</a>
       <a href="{{ rel }}archive/index.html">Archive</a>
+      {% if site.arxiv_links %}
+      <span class="nav-ext-lead">arXiv/new</span>
+      {% for c in site.arxiv_links %}<a class="nav-ext" href="https://arxiv.org/list/{{ c }}/new" target="_blank" rel="noopener">{{ c }} ↗</a>{% endfor %}
+      {% endif %}
     </nav>
   </header>
 
