@@ -141,49 +141,53 @@ spotlight:
 # disable. NOTE: this repo is public, so this list is visible -- it's just a
 # ranking nudge, no secrets, but trim it if you'd rather not publish who you follow.
 authors:
-  # lensing
+  # lensing (galaxy-scale + GW lensing)
   - Miguel Zumalacarregui
-  - Suyu
-  - Vegetti
-  - Ezquiaga
-  - Ajith
-  - Venumadhav
-  - Hannuksela
-  - Keitel
-  - Masamune Oguri
+  - Sherry Suyu
+  - Simona Vegetti
+  - Jose Maria Ezquiaga
+  - Parameswaran Ajith
+  - Tejaswi Venumadhav
+  - Srashti Goyal
+  - Otto Hannuksela
+  - Ankur Barsode
+  - Paolo Cremonese
+  - Justin Janquart
+  - Juno C. L. Chan
+  - Rico K. L. Lo
+  - Alvin K. Y. Li
+  - David Keitel
+  - Anupreeta More
+  - Shin'ichiro Ando
+  - Surhud More
   - Liang Dai
   - Priyamvada Natarajan
-  - Kochanek
-  - Peter Schneider
-  - Surhud More
-  # dark matter
-  - Nirmal Raj
-  - Ranjan Laha
+  - Masamune Oguri
   # ultralight / fuzzy dark matter
   - Wayne Hu
   - Lam Hui
-  - Broadhurst
   - David Marsh
-  - Slatyer
-  - Thaler
+  - Tracy Slatyer
+  - Jesse Thaler
   - Peter Graham
+  - Asimina Theodorou     # unverified on arXiv as of 2026-09 -- keep or drop
+  - Russell Boey          # ULDM solitons / SMBH binaries (Auckland), not lensing
   # primordial black holes
   - Bernard Carr
   - Misao Sasaki
-  - Suyama
   - Anne Green
-  - Kuhnel
-  - Kaiser            # ambiguous -- set a first name if the ★ over-fires
+  - David Kaiser
+  - Alexandra Klipfel
+  - Ore Gottlieb          # really GW sources / collapsar jets, not PBH
   # self-interacting dark matter
-  - Spergel
-  - Tulin
-  - Hai-Bo Yu        # full name excludes the many other "H. Yu"
-  - Vogelsberger
-  # FRB / transient lensing
-  - Masui
+  - Sean Tulin
+  - Hai-Bo Yu             # full name excludes the many other "H. Yu"
+  - Mark Vogelsberger
+  - Vinh Tran
   # structure / surveys
-  - Wechsler
+  - Risa Wechsler
   - Yao-Yuan Mao
+  - Ana Bonaca
 
 scoring:
   title_weight: 3

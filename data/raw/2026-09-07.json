@@ -65,10 +65,11 @@
         "dark matter"
       ],
       "matched_authors": [
-        "Ajith",
-        "Venumadhav"
+        "Ankur Barsode",
+        "Parameswaran Ajith",
+        "Tejaswi Venumadhav"
       ],
-      "score": 14
+      "score": 19
     },
     {
       "id": "2609.04308",
@@ -177,7 +178,7 @@
         "gravitational waves"
       ],
       "matched_authors": [
-        "Keitel"
+        "David Keitel"
       ],
       "score": 9
     },
@@ -240,10 +241,8 @@
         "astro-ph.HE"
       ],
       "matched_keywords": [],
-      "matched_authors": [
-        "Kochanek"
-      ],
-      "score": 5
+      "matched_authors": [],
+      "score": 0
     },
     {
       "id": "2609.04322",
