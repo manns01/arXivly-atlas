@@ -174,6 +174,16 @@
       .force("collide", d3.forceCollide().radius(function (d) { return D.radius(d) + 4; }))
       .on("tick", ticked);
 
+    // Map nodes with no cross-subject link (e.g. a small, self-contained
+    // cluster like "Gravitational waves" on a light day) have nothing to
+    // pull them back against the charge force and drift off-canvas. A weak
+    // pull toward center only affects those otherwise-unanchored nodes --
+    // linked nodes are dominated by the much stronger link force.
+    if (kind === "map") {
+      sim.force("x", d3.forceX(width / 2).strength(0.05))
+        .force("y", d3.forceY(height / 2).strength(0.05));
+    }
+
     updateChrome();
   }
 
