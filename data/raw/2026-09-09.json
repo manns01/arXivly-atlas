@@ -10251,8 +10251,10 @@
         "gr-qc"
       ],
       "matched_keywords": [],
-      "matched_authors": [],
-      "score": 0
+      "matched_authors": [
+        "Keitel"
+      ],
+      "score": 5
     },
     {
       "id": "2609.08787",

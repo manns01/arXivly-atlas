@@ -64,8 +64,11 @@
       "matched_keywords": [
         "dark matter"
       ],
-      "matched_authors": [],
-      "score": 4
+      "matched_authors": [
+        "Ajith",
+        "Venumadhav"
+      ],
+      "score": 14
     },
     {
       "id": "2609.04308",
@@ -115,8 +118,10 @@
         "Rubin Observatory",
         "LSST"
       ],
-      "matched_authors": [],
-      "score": 9
+      "matched_authors": [
+        "Miguel Zumalacarregui"
+      ],
+      "score": 14
     },
     {
       "id": "2609.04900",
@@ -171,8 +176,10 @@
       "matched_keywords": [
         "gravitational waves"
       ],
-      "matched_authors": [],
-      "score": 4
+      "matched_authors": [
+        "Keitel"
+      ],
+      "score": 9
     },
     {
       "id": "2609.04307",
@@ -233,8 +240,10 @@
         "astro-ph.HE"
       ],
       "matched_keywords": [],
-      "matched_authors": [],
-      "score": 0
+      "matched_authors": [
+        "Kochanek"
+      ],
+      "score": 5
     },
     {
       "id": "2609.04322",
@@ -450,8 +459,10 @@
         "astro-ph.HE"
       ],
       "matched_keywords": [],
-      "matched_authors": [],
-      "score": 0
+      "matched_authors": [
+        "Priyamvada Natarajan"
+      ],
+      "score": 5
     },
     {
       "id": "2609.05168",

@@ -137,10 +137,53 @@ spotlight:
 #   - full name + surname   -> "Liang Dai"   given name must match (an "L. Dai"
 #                                            rendering on the paper still counts)
 # Prefer the full-name form for common surnames -- it stops namesakes (Lei Dai,
-# Wei Dai) from stealing the badge. Leave the list empty to disable.
+# Wei Dai) from stealing the badge. Rare surnames are fine bare. Leave empty to
+# disable. NOTE: this repo is public, so this list is visible -- it's just a
+# ranking nudge, no secrets, but trim it if you'd rather not publish who you follow.
 authors:
-  - Suyu             # rare surname -- bare form is safe
-  - Liang Dai        # common surname -- full name stops Lei/Wei Dai stealing the ★
+  # lensing
+  - Miguel Zumalacarregui
+  - Suyu
+  - Vegetti
+  - Ezquiaga
+  - Ajith
+  - Venumadhav
+  - Hannuksela
+  - Keitel
+  - Masamune Oguri
+  - Liang Dai
+  - Priyamvada Natarajan
+  - Kochanek
+  - Peter Schneider
+  - Surhud More
+  # dark matter
+  - Nirmal Raj
+  - Ranjan Laha
+  # ultralight / fuzzy dark matter
+  - Wayne Hu
+  - Lam Hui
+  - Broadhurst
+  - David Marsh
+  - Slatyer
+  - Thaler
+  - Peter Graham
+  # primordial black holes
+  - Bernard Carr
+  - Misao Sasaki
+  - Suyama
+  - Anne Green
+  - Kuhnel
+  - Kaiser            # ambiguous -- set a first name if the ★ over-fires
+  # self-interacting dark matter
+  - Spergel
+  - Tulin
+  - Hai-Bo Yu        # full name excludes the many other "H. Yu"
+  - Vogelsberger
+  # FRB / transient lensing
+  - Masui
+  # structure / surveys
+  - Wechsler
+  - Yao-Yuan Mao
 
 scoring:
   title_weight: 3
