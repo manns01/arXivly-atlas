@@ -1,27 +1,49 @@
 {% extends "base.html" %}
 {% block title %}{{ pubdate }} — {{ site.title }}{% endblock %}
 
-{% macro paper_card(p) %}
+{% macro paper_row(p) %}
 <article class="paper" id="paper-{{ p.id }}">
   <h3 class="paper-title">
+    {% if p.matched_authors %}<span class="star" title="priority author: {{ p.matched_authors | join(', ') }}">★</span> {% endif %}
     <a href="{{ p.link }}">{{ p.title }}</a>
   </h3>
-  <p class="paper-meta">
-    <span class="authors">{{ p.authors | join(", ") }}</span>
-  </p>
-  <p class="paper-badges">
-    {% for c in p.categories %}<span class="cat">{{ c }}</span>{% endfor %}
-    <span class="announce announce-{{ p.announce_type }}">{{ p.announce_type }}</span>
-    {% if not p.is_today %}<span class="seen">first seen {{ p.first_pubdate }}</span>{% endif %}
-    {% if p.matched_authors %}<span class="badge-author">★ {{ p.matched_authors | join(", ") }}</span>{% endif %}
-  </p>
-  {% if p.snippet %}<p class="paper-abstract">{{ p.snippet }}</p>{% endif %}
-  <p class="paper-links">
-    <a href="{{ p.link }}">abs</a>
-    <a href="{{ p.pdf }}">pdf</a>
-    {% if p.matched_keywords %}<span class="kw">matched: {{ p.matched_keywords | join(", ") }}</span>{% endif %}
-  </p>
+  <details class="paper-more"{% if not compact_cards %} open{% endif %}>
+    <summary class="paper-sum">
+      <span class="paper-sum-meta">
+        {%- if p.authors %}{{ p.authors[0] }}{% if p.authors | length > 1 %} et al.{% endif %}{% endif -%}
+        <span class="dot">·</span>{{ p.primary_category }}
+        {%- if p.matched_keywords %}<span class="dot">·</span><span class="kw">{{ p.matched_keywords[:3] | join(', ') }}</span>{% endif -%}
+        <span class="dot">·</span>{% if p.is_today %}<span class="today-tag">today</span>{% else %}<span class="seen">seen {{ p.first_pubdate }}</span>{% endif %}
+      </span>
+      <span class="disclose">abstract</span>
+    </summary>
+    <div class="paper-body">
+      {% if p.snippet %}<p class="paper-abstract">{{ p.snippet }}</p>{% endif %}
+      <p class="paper-authors">
+        {{ p.authors[:max_authors_shown] | join(", ") }}{% if p.authors | length > max_authors_shown %} … +{{ p.authors | length - max_authors_shown }} more{% endif %}
+      </p>
+      <p class="paper-badges">
+        {% for c in p.categories %}<span class="cat">{{ c }}</span>{% endfor %}
+        {% if p.announce_type == "cross" %}<span class="announce announce-cross">cross</span>{% endif %}
+      </p>
+      <p class="paper-links">
+        <a href="{{ p.link }}">abs</a>
+        <a href="{{ p.pdf }}">pdf</a>
+      </p>
+    </div>
+  </details>
 </article>
+{% endmacro %}
+
+{% macro cluster_block(c) %}
+<details class="cluster"{% if c.open %} open{% endif %}>
+  <summary>
+    <span class="cluster-label">{{ c.label or "(untitled)" }}</span>
+    <span class="cluster-count" data-total="{{ c.papers | length }}">{{ c.papers | length }} paper{{ "" if c.papers | length == 1 else "s" }}{% if c.today_count %}, {{ c.today_count }} today{% endif %}</span>
+    {% if c.papers %}<span class="cluster-peek">{{ c.papers[:2] | map(attribute='title') | join('  ·  ') | truncate(100) }}</span>{% endif %}
+  </summary>
+  {% for p in c.papers %}{{ paper_row(p) }}{% endfor %}
+</details>
 {% endmacro %}
 
 {% block content %}
@@ -33,13 +55,27 @@
     atlas over {{ window_days }} announcement day{{ "" if window_days == 1 else "s" }}
     ({{ atlas.window_size }} papers, {{ atlas.clusters | length }} cluster{{ "" if atlas.clusters | length == 1 else "s" }})
   </p>
+  <div class="day-controls">
+    {% if atlas.nodes %}
+    <div class="window-toggle" role="group" aria-label="Which days to show">
+      <button type="button" data-win="1">Today</button>
+      <button type="button" data-win="0">Whole window</button>
+    </div>
+    {% endif %}
+    {% if compact_cards %}
+    <div class="bulk-toggle">
+      <button type="button" class="expand-all">expand all</button>
+      <button type="button" class="collapse-all">collapse all</button>
+    </div>
+    {% endif %}
+  </div>
 </section>
 
 {% if atlas.nodes %}
-<section class="filters" hidden aria-label="View filters">
-  <details>
+<section class="filters" aria-label="View filters">
+  <details open>
     <summary>
-      Filters <span class="filter-count"></span>
+      Filter papers <span class="filter-count"></span>
       <span class="filter-actions">
         <button type="button" class="filter-save">save</button>
         <button type="button" class="filter-clear">clear</button>
@@ -49,7 +85,8 @@
     <p class="filter-rule">
       All fields are comma-separated free text. A paper shows if it is in the
       chosen window, in a typed category (or any, if blank), not excluded, and —
-      when Topics or Authors are set — matches one of them.
+      when Topics or Authors are set — matches one of them. Use this instead of
+      the browser's find (collapsed abstracts are invisible to it).
       <strong>Save</strong> keeps your terms for next time (this browser only).
     </p>
 
@@ -125,8 +162,15 @@
 {% if atlas.window_size >= 2 %}
 <section class="atlas">
   <h2>Atlas</h2>
-  <p class="atlas-hint">Nodes are papers, ringed if announced today. Lines connect similar papers. Drag to rearrange, scroll to zoom, click a node to jump to its card.</p>
+  <p class="atlas-hint"
+     data-hint-map="Each node is a subject in the recent window, sized by paper count and ringed by today's share. Click one to jump to its section."
+     data-hint-papers="Nodes are papers, ringed if announced today. Lines connect similar papers. Drag to rearrange, scroll to zoom, click a node to jump to its card.">Subjects in the recent window — click a node to jump to its section.</p>
+  <div class="graph-toggle" hidden>
+    <button type="button" data-graph="map">map</button>
+    <button type="button" data-graph="papers">papers</button>
+  </div>
   <div id="atlas-graph" data-rel="{{ rel }}"></div>
+  <p class="graph-legend" hidden></p>
 </section>
 {% endif %}
 
@@ -155,27 +199,32 @@
 {% endfor %}
 
 <section class="clusters">
-  <h2>Clusters</h2>
+  <h2>Papers</h2>
   {% if not atlas.clusters %}
   <p class="empty">Not enough papers in the window to form clusters yet.</p>
   {% endif %}
-  {% for c in clusters %}
-  <details class="cluster" open>
-    <summary>
-      <span class="cluster-label">{{ c.label or "(untitled)" }}</span>
-      <span class="cluster-count" data-total="{{ c.papers | length }}">{{ c.papers | length }} paper{{ "" if c.papers | length == 1 else "s" }}{% if c.today_count %}, {{ c.today_count }} today{% endif %}</span>
-    </summary>
-    {% for p in c.papers %}{{ paper_card(p) }}{% endfor %}
-  </details>
-  {% endfor %}
+
+  {% if subjects %}
+    {% for s in subjects %}
+    <details class="subject"{% if s.open %} open{% endif %}>
+      <summary>
+        <span class="subject-label">{{ s.label }}</span>
+        <span class="subject-count" data-total="{{ s.paper_count }}">{{ s.paper_count }} paper{{ "" if s.paper_count == 1 else "s" }} in {{ s.clusters | length }} cluster{{ "" if s.clusters | length == 1 else "s" }}{% if s.today_count %}, {{ s.today_count }} today{% endif %}</span>
+      </summary>
+      {% for c in s.clusters %}{{ cluster_block(c) }}{% endfor %}
+    </details>
+    {% endfor %}
+  {% else %}
+    {% for c in clusters %}{{ cluster_block(c) }}{% endfor %}
+  {% endif %}
 
   {% if unclustered %}
-  <details class="cluster unclustered" open>
+  <details class="cluster unclustered">
     <summary>
       <span class="cluster-label">Unclustered</span>
       <span class="cluster-count" data-total="{{ unclustered | length }}">{{ unclustered | length }} paper{{ "" if unclustered | length == 1 else "s" }} with no close relative</span>
     </summary>
-    {% for p in unclustered %}{{ paper_card(p) }}{% endfor %}
+    {% for p in unclustered %}{{ paper_row(p) }}{% endfor %}
   </details>
   {% endif %}
 </section>
@@ -185,4 +234,5 @@
 <script src="{{ rel }}assets/d3.v7.min.js"></script>
 <script src="{{ rel }}assets/graph.js"></script>
 <script src="{{ rel }}assets/filters.js"></script>
+<script src="{{ rel }}assets/cards.js"></script>
 {% endblock %}

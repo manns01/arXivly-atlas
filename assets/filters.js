@@ -44,6 +44,11 @@
   var days = (data.days || []).slice();              // newest first
   var corpus = (data.corpus_categories || []).map(function (c) { return c.toLowerCase(); });
 
+  // Initial window state. "today" only makes sense when today actually has
+  // papers -- otherwise a today-only default would blank the whole page.
+  var DEFAULT_WIN =
+    (data.default_window === "today" && (data.today_count || 0) > 0) ? "1" : "0";
+
   var STORE_KEY = "arxivly-atlas:filters:3";
   var FIELDS = ["topics", "authors", "categories", "exclude"];
 
@@ -79,6 +84,12 @@
     var el = c.querySelector(".cluster-count");
     if (el) el.dataset.original = el.textContent;
   });
+  var subjectEls = toArray(document.querySelectorAll(".clusters .subject"));
+  subjectEls.forEach(function (s) {
+    var el = s.querySelector(".subject-count");
+    if (el) el.dataset.original = el.textContent;
+  });
+  var winButtons = toArray(document.querySelectorAll(".window-toggle button"));
 
   // Spotlight sections (config-defined highlights above the clusters). Their
   // rows link to the same paper ids, so they follow the same visible set. Not
@@ -109,7 +120,11 @@
     var p = new URLSearchParams();
     FIELDS.forEach(function (k) { if (s[k]) p.set(k, s[k]); });
     if (s.prio) p.set("prio", "1");
-    if (s.win && s.win !== "0") p.set("win", s.win);
+    // Serialise the window whenever it differs from the site default, so a
+    // deliberate "whole window" (when the default is "today") is shareable and
+    // survives a reload -- not just the non-"0" cases.
+    var win = s.win || "0";
+    if (win !== DEFAULT_WIN) p.set("win", win);
     return p.toString();
   }
 
@@ -118,7 +133,7 @@
     var s = {};
     FIELDS.forEach(function (k) { s[k] = p.get(k) || ""; });
     s.prio = p.get("prio") === "1";
-    s.win = p.get("win") || "0";
+    s.win = p.get("win") || DEFAULT_WIN;
     return s;
   }
 
@@ -257,6 +272,22 @@
         : cEl.dataset.original;
     });
 
+    subjectEls.forEach(function (sub) {
+      var visClusters = toArray(sub.querySelectorAll(".cluster")).filter(
+        function (c) { return !c.hidden; });
+      sub.hidden = visClusters.length === 0;
+      var shown = sub.querySelectorAll(".paper:not([hidden])").length;
+      var sEl = sub.querySelector(".subject-count");
+      if (!sEl) return;
+      sEl.textContent = narrowed
+        ? shown + " of " + (sEl.dataset.total || shown) + " shown"
+        : sEl.dataset.original;
+    });
+
+    winButtons.forEach(function (b) {
+      b.classList.toggle("active", b.dataset.win === (s.win || "0"));
+    });
+
     spotItems.forEach(function (li) {
       li.hidden = !ids.has(li.dataset.id);
     });
@@ -359,6 +390,15 @@
         }
       }
     }
+  });
+
+  // Header window buttons live outside .filters, so wire them directly. They
+  // just drive the same hidden <select> the filter panel owns.
+  winButtons.forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (winSelect) winSelect.value = b.dataset.win;
+      apply();
+    });
   });
 
   writeControls(loadState());

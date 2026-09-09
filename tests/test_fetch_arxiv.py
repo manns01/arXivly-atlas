@@ -161,7 +161,8 @@ class FilterAndScore(unittest.TestCase):
                              author_surnames=["Hu"])
         for p in kept:
             self.assertIn("hu", p["surnames"])
-            self.assertIn("hu", p["matched_authors"])
+            # matched_authors now carries the config spec string, not the surname.
+            self.assertIn("Hu", p["matched_authors"])
 
     def test_first_initial_narrows_common_surname(self):
         feeds = load_parsed()
@@ -207,13 +208,25 @@ class BuildDay(unittest.TestCase):
         self.assertEqual(day["pubdate"], "2026-09-07")
         self.assertEqual(day["schema_version"], 2)
         self.assertEqual(len(day["papers"]), N_AFTER_KEYWORDS)
-        scores = [p["score"] for p in day["papers"]]
-        self.assertEqual(scores, sorted(scores, reverse=True))
+        # Papers are ordered newest-first by arXiv id (score no longer sorts).
+        ids = [p["id"] for p in day["papers"]]
+        self.assertEqual(ids, sorted(ids, reverse=True))
 
     def test_max_papers_truncates(self):
         cfg = {**self.CONFIG, "keywords": [], "site": {"max_papers_per_day": 5}}
         day = build_day(load_parsed(), cfg)
         self.assertEqual(len(day["papers"]), 5)
+
+    def test_cap_keeps_newest_ids_regardless_of_score(self):
+        feeds = load_parsed()
+        _, merged = merge_feeds(feeds, CATEGORIES, ["new", "cross"])
+        all_ids = sorted((p["id"] for p in merged), reverse=True)
+        cfg = {**self.CONFIG, "keywords": [], "site": {"max_papers_per_day": 5}}
+        day = build_day(feeds, cfg)
+        kept_ids = [p["id"] for p in day["papers"]]
+        self.assertEqual(kept_ids, all_ids[:5])
+        self.assertTrue(all(day["papers"][i]["id"] > day["papers"][i + 1]["id"]
+                            for i in range(len(day["papers"]) - 1)))
 
     def test_zero_match_day_is_valid(self):
         cfg = {**self.CONFIG, "keywords": ["zzz-nonexistent-term-zzz"]}

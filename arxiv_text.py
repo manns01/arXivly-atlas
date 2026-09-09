@@ -179,6 +179,52 @@ def author_spec_matches(paper_keys: list[list[str]], spec_key: tuple[str, str]) 
     return False
 
 
+def _first_given_letters(given: list[str]) -> str:
+    """First given-name token reduced to lowercase ASCII letters (``"L."`` -> ``"l"``,
+    ``"Liang"`` -> ``"liang"``). ``""`` when there is no given name."""
+    if not given:
+        return ""
+    return re.sub(r"[^a-z]", "", given[0].lower())
+
+
+def author_full_matches(author_names: list[str], spec: str) -> str:
+    """Return a display name if any author in ``author_names`` satisfies the
+    configured ``authors:`` entry ``spec``, else ``""``.
+
+    The surname must match exactly (particles folded in, as elsewhere). Then:
+
+      - full given name (``"Liang Dai"``): the author's first given name must equal
+        it, OR the author name is initial-only and that initial matches -- arXiv
+        frequently renders ``"L. Dai"`` even for Liang Dai, so a strict equality
+        would make the star badge miss the target on many of their own papers;
+      - initial only (``"L. Dai"`` / ``"L Dai"``): first initial must match;
+      - bare surname (``"Suyu"``): surname alone.
+
+    ``author_names`` are full names, already LaTeX/Unicode-normalized.
+    """
+    s_given, s_surn = _split_name(spec)
+    s_surn = " ".join(s_surn)
+    if not s_surn:
+        return ""
+    s_letters = _first_given_letters(s_given)
+    s_full = len(s_letters) > 1
+    s_initial = s_letters[:1]
+    for name in author_names:
+        a_given, a_surn = _split_name(name)
+        if " ".join(a_surn) != s_surn:
+            continue
+        a_letters = _first_given_letters(a_given)
+        a_initial = a_letters[:1]
+        if not s_letters:
+            return spec.strip()
+        if s_full:
+            if a_letters == s_letters or (len(a_letters) <= 1 and a_initial == s_initial):
+                return spec.strip()
+        elif a_initial == s_initial:
+            return spec.strip()
+    return ""
+
+
 # --- arXiv id + abstract cleanup -----------------------------------------------
 
 _re_arxiv_id = re.compile(r"(\d{4}\.\d{4,5})(v\d+)?")

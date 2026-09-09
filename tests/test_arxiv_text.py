@@ -4,6 +4,7 @@ import unittest
 
 from arxiv_text import (
     arxiv_id,
+    author_full_matches,
     author_spec_key,
     author_spec_matches,
     clean_abstract,
@@ -106,6 +107,35 @@ class NameKeyAndAuthorSpec(unittest.TestCase):
 
     def test_spec_empty_surname_never_matches(self):
         self.assertFalse(author_spec_matches([["e", "hubble"]], ("", "")))
+
+
+class AuthorFullMatches(unittest.TestCase):
+    def test_full_given_name_disambiguates_namesakes(self):
+        # "Liang Dai" must not flag "Lei Dai".
+        self.assertEqual(author_full_matches(["Liang Dai", "Jane Roe"], "Liang Dai"),
+                         "Liang Dai")
+        self.assertEqual(author_full_matches(["Lei Dai", "Jane Roe"], "Liang Dai"), "")
+
+    def test_full_given_name_still_matches_initial_only_rendering(self):
+        # arXiv often prints "L. Dai" even for Liang Dai -- keep the hit.
+        self.assertEqual(author_full_matches(["L. Dai"], "Liang Dai"), "Liang Dai")
+        # but a different initial is not a match
+        self.assertEqual(author_full_matches(["M. Dai"], "Liang Dai"), "")
+
+    def test_initial_form_matches_by_initial(self):
+        self.assertEqual(author_full_matches(["Liang Dai"], "L. Dai"), "L. Dai")
+        self.assertEqual(author_full_matches(["Wei Dai"], "L. Dai"), "")
+
+    def test_bare_surname_matches_any_first_name(self):
+        self.assertEqual(author_full_matches(["Sherry H. Suyu"], "Suyu"), "Suyu")
+        self.assertEqual(author_full_matches(["S. Suyu"], "Suyu"), "Suyu")
+
+    def test_surname_exact_not_substring(self):
+        self.assertEqual(author_full_matches(["Edwin Hubble"], "Hu"), "")
+
+    def test_no_match_returns_empty(self):
+        self.assertEqual(author_full_matches(["Jane Roe", "John Doe"], "Suyu"), "")
+        self.assertEqual(author_full_matches([], "Suyu"), "")
 
 
 class ArxivId(unittest.TestCase):

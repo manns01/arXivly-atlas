@@ -24,8 +24,7 @@ import feedparser
 
 from arxiv_text import (
     arxiv_id,
-    author_spec_key,
-    author_spec_matches,
+    author_full_matches,
     clean_abstract,
     name_keys_from_creator,
     normalize_text,
@@ -171,11 +170,14 @@ def filter_papers(items: list[dict], *, keywords: list[str],
 
     Either way, a paper matching an ``exclude_keywords`` term is dropped.
 
-    An ``authors:`` entry is either a bare surname (``Suyu`` -- any first name) or
-    ``Initial. Surname`` / ``Firstname Surname`` (``L. Dai`` -- first initial must
-    also match), disambiguating common surnames.
+    An ``authors:`` entry is a bare surname (``Suyu`` -- any first name), an
+    ``Initial. Surname`` (``L. Dai`` -- first initial must match too), or a full
+    ``Firstname Surname`` (``Liang Dai`` -- the given name must match, though an
+    initial-only rendering like ``L. Dai`` on the paper still counts). See
+    :func:`arxiv_text.author_full_matches`. ``matched_authors`` carries the config
+    spec string of each hit, so the site can badge it with the full name.
     """
-    author_specs = [(s, author_spec_key(s)) for s in author_surnames if s.strip()]
+    author_specs = [s for s in author_surnames if s.strip()]
     keep_all = mode == "all" or (not keywords and not author_specs)
     kept = []
     for it in items:
@@ -184,8 +186,8 @@ def filter_papers(items: list[dict], *, keywords: list[str],
             continue
         matched_kw = _kw_hits(haystack, keywords)
         matched_auth = sorted({
-            key[1] for _, key in author_specs
-            if author_spec_matches(it["author_keys"], key)
+            m for spec in author_specs
+            if (m := author_full_matches(it["authors"], spec))
         })
         it["matched_keywords"] = matched_kw
         it["matched_authors"] = matched_auth
@@ -205,7 +207,14 @@ def score_paper(item: dict, *, keywords: list[str], scoring: dict) -> float:
 
 
 def build_day(parsed_feeds: list[tuple[str, list[dict]]], config: dict) -> dict:
-    """Full pipeline: merge -> filter -> score -> sort -> truncate."""
+    """Full pipeline: merge -> filter -> score -> sort newest-first -> truncate.
+
+    The cap keeps the *newest* ``max_papers_per_day`` by arXiv id (submission
+    order) -- the site shows "today only" by default and the owner would rather
+    lose the oldest submissions of a heavy day than see a 200-entry wall. Score
+    is still computed (it ranks graph labels downstream) but no longer decides
+    which papers survive the cap.
+    """
     site = config.get("site", {})
     pubdate, merged = merge_feeds(
         parsed_feeds,
@@ -222,7 +231,8 @@ def build_day(parsed_feeds: list[tuple[str, list[dict]]], config: dict) -> dict:
     scoring = config.get("scoring", {})
     for it in kept:
         it["score"] = score_paper(it, keywords=config.get("keywords", []), scoring=scoring)
-    kept.sort(key=lambda it: (-it["score"], it["id"]))
+    # arXiv ids are YYMM.NNNNN, so a plain reverse string sort is newest-first.
+    kept.sort(key=lambda it: it["id"], reverse=True)
     max_papers = site.get("max_papers_per_day", 100)
     kept = kept[:max_papers]
     return {
