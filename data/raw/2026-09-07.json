@@ -64,11 +64,8 @@
       "matched_keywords": [
         "dark matter"
       ],
-      "matched_authors": [
-        "ajith",
-        "venumadhav"
-      ],
-      "score": 14
+      "matched_authors": [],
+      "score": 4
     },
     {
       "id": "2609.04308",
@@ -114,12 +111,12 @@
       ],
       "matched_keywords": [
         "microlensing",
-        "cosmology"
+        "cosmology",
+        "Rubin Observatory",
+        "LSST"
       ],
-      "matched_authors": [
-        "zumalacarregui"
-      ],
-      "score": 12
+      "matched_authors": [],
+      "score": 9
     },
     {
       "id": "2609.04900",
@@ -174,10 +171,8 @@
       "matched_keywords": [
         "gravitational waves"
       ],
-      "matched_authors": [
-        "keitel"
-      ],
-      "score": 9
+      "matched_authors": [],
+      "score": 4
     },
     {
       "id": "2609.04307",
@@ -238,10 +233,8 @@
         "astro-ph.HE"
       ],
       "matched_keywords": [],
-      "matched_authors": [
-        "kochanek"
-      ],
-      "score": 5
+      "matched_authors": [],
+      "score": 0
     },
     {
       "id": "2609.04322",
@@ -457,361 +450,8 @@
         "astro-ph.HE"
       ],
       "matched_keywords": [],
-      "matched_authors": [
-        "natarajan"
-      ],
-      "score": 5
-    },
-    {
-      "id": "2609.04868",
-      "title": "Higgs Boson Pair Production via Gluon Fusion: Higher-Order Corrections and Theoretical Uncertainties",
-      "abstract": "In this contribution, the higher-order QCD and electroweak corrections to Standard Model Higgs boson pair production via the gluon-fusion mechanism, $gg\\to hh$, are summarized and the different sources of theoretical uncertainty are assessed. The discussion includes finite top quark mass effects, matching to parton showers, approximate NNLO and N$^3$LO QCD corrections, NLO electroweak effects, and uncertainties associated with the top quark mass scheme and perturbative scale choices. In addition, we provide an updated state-of-the-art recommendation for the inclusive gluon-fusion Higgs boson pair production cross section and the corresponding Higgs boson pair invariant-mass distribution.",
-      "authors": [
-        "Ajjath A H",
-        "Simone Alioli",
-        "Emanuele Bagnaschi",
-        "Arunima Bhattacharya",
-        "Huan-Yu Bi",
-        "Roberto Bonciani",
-        "Marco Bonetti",
-        "Francisco Campanario",
-        "Sauro Carlotti",
-        "Jamie Chang",
-        "Long-Bin Chen",
-        "Xuan Chen",
-        "Yuesheng Dai",
-        "Joshua Davies",
-        "Giuseppe Degrassi",
-        "Pier Paolo Giardino",
-        "Massimiliano Grazzini",
-        "Ramona Grober",
-        "Gudrun Heinrich",
-        "Li-Hong Huang",
-        "Rui-Jun Huang",
-        "Sebastian Jaskiewicz",
-        "Stephen Jones",
-        "Stefan Kallweit",
-        "Matthias Kerner",
-        "Hai Tao Li",
-        "Shi-Yuan Li",
-        "Jonas M. Lindert",
-        "Yan-Qing Ma",
-        "Giulia Marinelli",
-        "Javier Mazzitelli",
-        "Margarete Muhlleitner",
-        "Davide Napoletano",
-        "Philipp Rendler",
-        "Jonathan Ronca",
-        "Johannes Schlenk",
-        "Kay Schonwald",
-        "Hua-Sheng Shao",
-        "Michael Spira",
-        "Thomas Stone",
-        "Daniel Stremmer",
-        "Robert Szafron",
-        "William J. Torres Bobadilla",
-        "Yannick Ulrich",
-        "Augustin Vestner",
-        "Marco Vitti",
-        "Jian Wang",
-        "Huai-Min Yu",
-        "Hantian Zhang",
-        "Fabio Monti",
-        "Arantxa Ruiz Martinez",
-        "Angela Taliercio",
-        "Andreas Papaefstathiou",
-        "Ludovic Scyboz"
-      ],
-      "surnames": [
-        "h",
-        "alioli",
-        "bagnaschi",
-        "bhattacharya",
-        "bi",
-        "bonciani",
-        "bonetti",
-        "campanario",
-        "carlotti",
-        "chang",
-        "chen",
-        "chen",
-        "dai",
-        "davies",
-        "degrassi",
-        "giardino",
-        "grazzini",
-        "grober",
-        "heinrich",
-        "huang",
-        "huang",
-        "jaskiewicz",
-        "jones",
-        "kallweit",
-        "kerner",
-        "li",
-        "li",
-        "lindert",
-        "ma",
-        "marinelli",
-        "mazzitelli",
-        "muhlleitner",
-        "napoletano",
-        "rendler",
-        "ronca",
-        "schlenk",
-        "schonwald",
-        "shao",
-        "spira",
-        "stone",
-        "stremmer",
-        "szafron",
-        "bobadilla",
-        "ulrich",
-        "vestner",
-        "vitti",
-        "wang",
-        "yu",
-        "zhang",
-        "monti",
-        "martinez",
-        "taliercio",
-        "papaefstathiou",
-        "scyboz"
-      ],
-      "author_keys": [
-        [
-          "a",
-          "h"
-        ],
-        [
-          "s",
-          "alioli"
-        ],
-        [
-          "e",
-          "bagnaschi"
-        ],
-        [
-          "a",
-          "bhattacharya"
-        ],
-        [
-          "h",
-          "bi"
-        ],
-        [
-          "r",
-          "bonciani"
-        ],
-        [
-          "m",
-          "bonetti"
-        ],
-        [
-          "f",
-          "campanario"
-        ],
-        [
-          "s",
-          "carlotti"
-        ],
-        [
-          "j",
-          "chang"
-        ],
-        [
-          "l",
-          "chen"
-        ],
-        [
-          "x",
-          "chen"
-        ],
-        [
-          "y",
-          "dai"
-        ],
-        [
-          "j",
-          "davies"
-        ],
-        [
-          "g",
-          "degrassi"
-        ],
-        [
-          "p",
-          "giardino"
-        ],
-        [
-          "m",
-          "grazzini"
-        ],
-        [
-          "r",
-          "grober"
-        ],
-        [
-          "g",
-          "heinrich"
-        ],
-        [
-          "l",
-          "huang"
-        ],
-        [
-          "r",
-          "huang"
-        ],
-        [
-          "s",
-          "jaskiewicz"
-        ],
-        [
-          "s",
-          "jones"
-        ],
-        [
-          "s",
-          "kallweit"
-        ],
-        [
-          "m",
-          "kerner"
-        ],
-        [
-          "h",
-          "li"
-        ],
-        [
-          "s",
-          "li"
-        ],
-        [
-          "j",
-          "lindert"
-        ],
-        [
-          "y",
-          "ma"
-        ],
-        [
-          "g",
-          "marinelli"
-        ],
-        [
-          "j",
-          "mazzitelli"
-        ],
-        [
-          "m",
-          "muhlleitner"
-        ],
-        [
-          "d",
-          "napoletano"
-        ],
-        [
-          "p",
-          "rendler"
-        ],
-        [
-          "j",
-          "ronca"
-        ],
-        [
-          "j",
-          "schlenk"
-        ],
-        [
-          "k",
-          "schonwald"
-        ],
-        [
-          "h",
-          "shao"
-        ],
-        [
-          "m",
-          "spira"
-        ],
-        [
-          "t",
-          "stone"
-        ],
-        [
-          "d",
-          "stremmer"
-        ],
-        [
-          "r",
-          "szafron"
-        ],
-        [
-          "w",
-          "bobadilla"
-        ],
-        [
-          "y",
-          "ulrich"
-        ],
-        [
-          "a",
-          "vestner"
-        ],
-        [
-          "m",
-          "vitti"
-        ],
-        [
-          "j",
-          "wang"
-        ],
-        [
-          "h",
-          "yu"
-        ],
-        [
-          "h",
-          "zhang"
-        ],
-        [
-          "f",
-          "monti"
-        ],
-        [
-          "a",
-          "martinez"
-        ],
-        [
-          "a",
-          "taliercio"
-        ],
-        [
-          "a",
-          "papaefstathiou"
-        ],
-        [
-          "l",
-          "scyboz"
-        ]
-      ],
-      "categories": [
-        "hep-ph",
-        "hep-ex"
-      ],
-      "primary_category": "hep-ph",
-      "announce_type": "new",
-      "link": "https://arxiv.org/abs/2609.04868",
-      "pdf": "https://arxiv.org/pdf/2609.04868",
-      "matched_categories": [
-        "hep-ph"
-      ],
-      "matched_keywords": [],
-      "matched_authors": [
-        "yu"
-      ],
-      "score": 5
+      "matched_authors": [],
+      "score": 0
     },
     {
       "id": "2609.05168",
@@ -852,10 +492,8 @@
         "gr-qc"
       ],
       "matched_keywords": [],
-      "matched_authors": [
-        "yu"
-      ],
-      "score": 5
+      "matched_authors": [],
+      "score": 0
     },
     {
       "id": "2609.04296",
@@ -923,10 +561,12 @@
         "astro-ph.CO"
       ],
       "matched_keywords": [
-        "dark matter"
+        "dark matter",
+        "DESI ",
+        "large-scale structure"
       ],
       "matched_authors": [],
-      "score": 4
+      "score": 6
     },
     {
       "id": "2609.04328",
@@ -975,10 +615,11 @@
       ],
       "matched_keywords": [
         "dark matter",
-        "cosmology"
+        "cosmology",
+        "dark energy"
       ],
       "matched_authors": [],
-      "score": 4
+      "score": 5
     },
     {
       "id": "2609.04650",
@@ -1119,10 +760,15 @@
         "astro-ph.CO"
       ],
       "matched_keywords": [
-        "dark matter"
+        "dark matter",
+        "DESI ",
+        "dark energy",
+        "cosmological tensions",
+        "Type Ia supernova",
+        "baryon acoustic oscillation"
       ],
       "matched_authors": [],
-      "score": 4
+      "score": 12
     },
     {
       "id": "2609.04991",
@@ -1165,10 +811,11 @@
         "gr-qc"
       ],
       "matched_keywords": [
-        "cosmology"
+        "cosmology",
+        "Hubble constant"
       ],
       "matched_authors": [],
-      "score": 4
+      "score": 5
     },
     {
       "id": "2609.05204",
@@ -1374,10 +1021,15 @@
         "astro-ph.CO"
       ],
       "matched_keywords": [
-        "cosmology"
+        "cosmology",
+        "Dark Energy Survey",
+        "dark energy",
+        "evolving dark energy",
+        "Type Ia supernova",
+        "baryon acoustic oscillation"
       ],
       "matched_authors": [],
-      "score": 4
+      "score": 12
     },
     {
       "id": "2609.05118",
@@ -1525,10 +1177,11 @@
       ],
       "matched_keywords": [
         "weak lensing",
-        "cosmology"
+        "cosmology",
+        "neural network"
       ],
       "matched_authors": [],
-      "score": 2
+      "score": 3
     },
     {
       "id": "2609.04312",
@@ -1582,10 +1235,14 @@
         "astro-ph.CO"
       ],
       "matched_keywords": [
-        "cosmology"
+        "cosmology",
+        "JWST",
+        "James Webb",
+        "Hubble constant",
+        "time-delay cosmography"
       ],
       "matched_authors": [],
-      "score": 1
+      "score": 11
     },
     {
       "id": "2609.04412",
@@ -1702,43 +1359,11 @@
         "gr-qc"
       ],
       "matched_keywords": [
-        "dark matter"
+        "dark matter",
+        "dark energy"
       ],
       "matched_authors": [],
-      "score": 1
-    },
-    {
-      "id": "2609.04761",
-      "title": "Flavor Tomography of Long-Lived Neutrino-Mass Mediators: Probing the Neutrino Mass Ordering at the HL-LHC",
-      "abstract": "The neutrino mass ordering remains unresolved because long-baseline oscillation measurements are entangled with the unknown CP phase $\\delta_{CP}$; a collider probe free of this degeneracy would provide a qualitatively different, complementary test. We show that when the long-lived charged particle producing a displaced-lepton signal at the High-Luminosity LHC is also the mediator responsible for Majorana neutrino masses---the \\textit{shared-coupling condition}---the Casas--Ibarra parametrization determines the lepton flavor ratio $N_e/N_\\mu$ of time-delayed leptons in terms of Pontecorvo--Maki--Nakagawa--Sakata (PMNS) mixing parameters alone. Within the resulting \\textit{shared-coupling class} of models the ratio is fixed by oscillation data, independent of all beyond-Standard-Model mass and coupling parameters up to calculable corrections bounded by charged-lepton-flavor-violation data, yielding $N_e/N_\\mu = 0.140$ for the Normal and $2.11$ for the Inverted Hierarchy---a separation of more than an order of magnitude between the two predictions. This prediction holds identically across the Scotogenic model, the Type-III seesaw, the inverse and linear seesaw, and lepton-portal dark matter, and is stable against oscillation-parameter uncertainties and detector-efficiency variations, which cancel in the ratio. A single efficiency-corrected decision criterion identifies the hierarchy, and explicit signal-yield estimates combined with an exact Poisson test show that $\\mathcal{O}(25)$ displaced-lepton events suffice for a $3\\sigma$ discrimination with the timing infrastructure already under construction at CMS and ATLAS---so that a positive long-lived-particle signal would simultaneously resolve the mass ordering, with no dependence on $\\delta_{CP}$.",
-      "authors": [
-        "Renjie Wang"
-      ],
-      "surnames": [
-        "wang"
-      ],
-      "author_keys": [
-        [
-          "r",
-          "wang"
-        ]
-      ],
-      "categories": [
-        "hep-ph",
-        "hep-ex"
-      ],
-      "primary_category": "hep-ph",
-      "announce_type": "new",
-      "link": "https://arxiv.org/abs/2609.04761",
-      "pdf": "https://arxiv.org/pdf/2609.04761",
-      "matched_categories": [
-        "hep-ph"
-      ],
-      "matched_keywords": [
-        "dark matter"
-      ],
-      "matched_authors": [],
-      "score": 1
+      "score": 2
     },
     {
       "id": "2609.05291",

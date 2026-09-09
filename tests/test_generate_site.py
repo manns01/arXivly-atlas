@@ -8,7 +8,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from generate_site import _json_for_script, _snippet, render_site
+from generate_site import (
+    _json_for_script,
+    _snippet,
+    _subject_buckets,
+    render_site,
+)
 
 CONFIG = {
     "categories": ["astro-ph.CO"],
@@ -140,7 +145,10 @@ class RenderSite(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             docs, _ = self._build(tmp)
             idx = (docs / "index.html").read_text()
-        self.assertIn('<section class="filters" hidden', idx)
+        # the panel is visible now (collapsed abstracts hide from browser find),
+        # rendered open so the fields are one glance away
+        self.assertIn('<section class="filters" aria-label="View filters">', idx)
+        self.assertNotIn('<section class="filters" hidden', idx)
         for f in ("topics", "authors", "categories", "exclude"):
             self.assertEqual(idx.count('name="%s"' % f), 1, f)
         self.assertEqual(idx.count('name="cat"'), 0)
@@ -167,7 +175,7 @@ class RenderSite(unittest.TestCase):
             idx = (docs / "index.html").read_text()
         self.assertEqual(idx.count('id="paper-2"'), 1)
         # paper 2 first appeared on 09-04, newest day is 09-05
-        self.assertIn("first seen 2026-09-04", idx)
+        self.assertIn("seen 2026-09-04", idx)
 
     def test_spotlight_section_lists_matching_papers(self):
         cfg = dict(CONFIG)
@@ -213,6 +221,94 @@ class RenderSite(unittest.TestCase):
         i5 = ai.index("2026-09-05.html")
         i4 = ai.index("2026-09-04.html")
         self.assertLess(i5, i4)
+
+    def test_subjects_render_and_flat_fallback(self):
+        subj_cfg = dict(CONFIG)
+        subj_cfg["subjects"] = [
+            {"label": "Lensing", "match": ["lensing", "substructure", "subhalo"]},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            raw = Path(tmp) / "raw"
+            raw.mkdir()
+            _write_day(raw / "2026-09-06.json", "2026-09-06", [
+                _raw_paper("20", "substructure lensing perturbations",
+                           "cold dark matter subhalo lensing"),
+                _raw_paper("21", "more substructure lensing",
+                           "subhalo mass function from lensing"),
+            ])
+            docs = Path(tmp) / "docs"
+            render_site(subj_cfg, out_dir=docs, raw_dir=raw)
+            with_subjects = (docs / "index.html").read_text()
+
+        self.assertIn('class="subject"', with_subjects)
+        self.assertIn('<span class="subject-label">Lensing', with_subjects)
+
+        with tempfile.TemporaryDirectory() as tmp:              # empty -> flat
+            docs, _ = self._build(tmp)
+            flat = (docs / "index.html").read_text()
+        self.assertNotIn('class="subject"', flat)
+        self.assertIn('class="cluster"', flat)
+
+
+class SubjectBuckets(unittest.TestCase):
+    def _cluster(self, cid, label, cats, n=3, today=3):
+        return {
+            "id": cid, "label": label, "today_count": today,
+            "papers": [{"id": f"{cid}-{i}", "title": label.replace("/", " "),
+                        "categories": list(cats), "primary_category": cats[0]}
+                       for i in range(n)],
+        }
+
+    CFG = {
+        "subjects": [
+            {"label": "Lensing", "match": ["lensing", "shear"]},
+            {"label": "Cosmology", "match": ["bao", "hubble"]},
+        ],
+        "particle_only_last": True,
+        "site": {"open_subjects": 1, "open_clusters": 1},
+    }
+
+    def test_label_match_first_then_other_then_particle(self):
+        clusters = [
+            self._cluster(0, "weak/lensing/shear/psf", ["astro-ph.CO"]),
+            self._cluster(1, "hubble/tension/bao/ladder", ["astro-ph.CO"]),
+            self._cluster(2, "galaxy/formation/feedback/disk", ["astro-ph.GA"]),
+            self._cluster(3, "quark/gluon/plasma/qcd", ["hep-ph"]),
+        ]
+        buckets = _subject_buckets(clusters, self.CFG)
+        got = {b["label"]: [c["id"] for c in b["clusters"]] for b in buckets}
+        self.assertEqual(got["Lensing"], [0])
+        self.assertEqual(got["Cosmology"], [1])
+        self.assertEqual(got["Other"], [2])
+        self.assertEqual(got["Particle physics"], [3])
+        # order: config subjects, then Other, then Particle physics
+        self.assertEqual([b["label"] for b in buckets],
+                         ["Lensing", "Cosmology", "Other", "Particle physics"])
+
+    def test_first_matching_subject_wins(self):
+        clusters = [self._cluster(0, "lensing/bao/shear/hubble", ["astro-ph.CO"])]
+        buckets = _subject_buckets(clusters, self.CFG)
+        self.assertEqual(buckets[0]["label"], "Lensing")
+
+    def test_particle_only_yields_to_a_subject_match(self):
+        # gr-qc-only cluster but its label says "lensing" -> Lensing, not last
+        clusters = [self._cluster(0, "lensing/waveform/gw/ray", ["gr-qc"])]
+        buckets = _subject_buckets(clusters, self.CFG)
+        self.assertEqual(buckets[0]["label"], "Lensing")
+
+    def test_empty_subjects_returns_none(self):
+        self.assertIsNone(_subject_buckets([self._cluster(0, "x/y", ["astro-ph"])],
+                                           {"subjects": []}))
+        self.assertIsNone(_subject_buckets([], {}))
+
+    def test_open_flags_follow_config(self):
+        clusters = [
+            self._cluster(0, "weak/lensing", ["astro-ph.CO"]),
+            self._cluster(1, "hubble/bao", ["astro-ph.CO"]),
+        ]
+        buckets = _subject_buckets(clusters, self.CFG)
+        self.assertTrue(buckets[0]["open"])       # open_subjects: 1
+        self.assertFalse(buckets[1]["open"])
 
 
 if __name__ == "__main__":

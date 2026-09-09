@@ -17,6 +17,52 @@ AI features (summarizing, idea brainstorming).
 
 ## Status
 
+- **2026-09-09 (researcher-friendly redesign)** — Plan:
+  `~/.claude/plans/reactive-chasing-falcon.md` (Opus plan + Sonnet critic pass).
+  Branch `redesign-tidy-page`. **95 unit tests pass.** Shipped:
+  - **Cron**: primary `31 3 * * 1-5` (~09:01 IST) + backup `23 7 * * 1-5`; both
+    weekdays. First scheduled run was manually dispatched 2026-09-09.
+  - **`fetch_arxiv.build_day`**: daily cap → **newest 100 by arXiv id** (was top-200
+    by score). Score still computed; it no longer orders the page, only ranks graph
+    labels. `site.max_papers_per_day 200→100`.
+  - **★ author match** (`arxiv_text.author_full_matches`): surname exact, then full
+    given name must match ("Liang Dai" ≠ "Lei Dai") — but an initial-only paper
+    rendering ("L. Dai") still counts. `filter_papers` now matches config specs
+    against the full normalized names (`it["authors"]`), and `matched_authors`
+    carries the config spec string so the badge shows the full name. `config.authors`
+    → `[Suyu, Liang Dai]`. Re-tagged the stale `data/raw/2026-09-07.json` (had an old
+    personal author list) to current config.
+  - **Compact rows** (`templates/day.html` `paper_row`): title is a plain heading link
+    (outside the `<details>` — no toggle clash); a one-line meta summary; abstract +
+    full author list + badges + links behind the expander. Author list capped at
+    `site.max_authors_shown` (10) → "first 10 … +N more" (fixes the 1000-author
+    collaboration paper). `site.compact_cards`.
+  - **Subject sections** (`generate_site._subject_buckets`): the 60-odd auto-clusters
+    grouped under a curated, ordered `config.yaml` `subjects:` list (Lensing →
+    Gravitational waves → Cosmology → Astroparticle physics → Other → Particle
+    physics). A cluster is filed by its distinctive-term **label** only (no abstract
+    fallback — abstracts mention everything). `particle_only_last` sinks
+    astro-ph-free clusters below "Other", but a subject-label match wins. Empty/absent
+    `subjects:` → the old flat cluster list. `open_subjects` (3) / `open_clusters` (3)
+    control what's expanded; the rest collapse with a 2-title peek line.
+  - **Atlas graph** (`assets/graph.js` rewrite): default **map** view — one node per
+    subject, sized by paper count, ringed by today's share, coloured by dominant
+    archive, click to jump to the section; a `map | papers` toggle. Papers view is
+    scoped to today + direct neighbours and labels only the top `site.graph_labels`
+    (20) by score. Category legend; "no strong links" caption when the aggregated map
+    has 0 edges. Narrow filter now `display:none`s hidden nodes instead of dimming.
+  - **Window toggle** (header "Today" / "Whole window"): `site.default_window: today`,
+    but forced to `all` whenever `today_count == 0` (the empty-day case). filters.js
+    threads the default through load/serialise so "Whole window" survives a reload and
+    a shared `#topics=` link no longer forces "all". Buttons wired directly (they sit
+    outside `.filters`).
+  - **Filters panel** un-hidden and rendered `open` (collapsed abstracts are invisible
+    to browser find, so the built-in filter is the substitute).
+  - New: `assets/cards.js` (expand/collapse-all). New config: `subjects`,
+    `particle_only_last`, `site.{compact_cards,open_subjects,open_clusters,
+    default_window,graph_default,graph_labels,max_authors_shown}` — all with
+    behaviour-preserving defaults.
+
 - **2026-09-08** — Planning session. Requirements gathered, plan reviewed by an Opus
   critic against live arXiv (two passes; the second measured the whole pipeline on the
   Mon 7 Sep 2026 announcement day), plan revised and saved below. User will continue in

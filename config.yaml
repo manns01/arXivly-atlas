@@ -131,19 +131,48 @@ spotlight:
 
 # Priority authors -- a small ranking bonus (`scoring.author_bonus`) and a ★
 # badge whenever one appears on a paper. Matched on the LaTeX/Unicode-normalized
-# surname, exactly (never a substring). Two forms:
-#   - bare surname        -> "Suyu"      matches any first name
-#   - initial + surname   -> "L. Dai"    first initial must also match
-# Use the initial form for common surnames. Replace these with the people whose
-# work you want floated to the top; leave the list empty to disable.
+# surname, exactly (never a substring). Three forms:
+#   - bare surname          -> "Suyu"        matches any first name
+#   - initial + surname     -> "L. Dai"      first initial must also match
+#   - full name + surname   -> "Liang Dai"   given name must match (an "L. Dai"
+#                                            rendering on the paper still counts)
+# Prefer the full-name form for common surnames -- it stops namesakes (Lei Dai,
+# Wei Dai) from stealing the badge. Leave the list empty to disable.
 authors:
-  - Suyu
-  - L. Dai            # Liang Dai -- example of the "initial + surname" form
+  - Suyu             # rare surname -- bare form is safe
+  - Liang Dai        # common surname -- full name stops Lei/Wei Dai stealing the ★
 
 scoring:
   title_weight: 3
   abstract_weight: 1
   author_bonus: 5
+
+# Curated top-level subjects. Each auto-cluster is filed under the FIRST subject
+# whose `match` terms hit its distinctive-term label (case-insensitive substring);
+# clusters that match nothing fall into "Other". Subjects render in this order,
+# then "Other", then (if particle_only_last) "Particle physics" for clusters with
+# no astro-ph paper. Leave the list empty to fall back to a flat cluster list.
+# `match` terms are tested against a cluster's distinctive-term LABEL only
+# (e.g. "de/interacting/energy/host-galaxy"): a one-word term must be one of the
+# slash-separated tokens; a multi-word term must appear verbatim. No abstract
+# fallback -- abstracts mention everything. Add tokens you see in real labels.
+subjects:
+  - label: Lensing
+    match: [lens, lensed, lensing, microlensing, shear, convergence, magnification,
+            caustic, deflection, psf, kappa, substructure]
+  - label: Gravitational waves
+    match: [gw, gws, waveform, ringdown, postmerger, inspiral, quasinormal, qnm,
+            qnms, ligo, virgo, lisa, nanograv, pta, sgwb, siren, sirens, merger,
+            bbh, bbhs, bns, eccentric, spin, precessing]
+  - label: Cosmology
+    match: [cosmology, cosmological, de, ede, quintessence, w0wa, wcdm, lcdm,
+            hubble, h0, bao, desi, cmb, planck, sigma8, s8, growth, rsd, fnl,
+            supernova, supernovae, sne, reionization, lrd, lrds, distances]
+  - label: Astroparticle physics
+    match: [wimp, wimps, axion, axions, alp, alps, neutrino, neutrinos, recoil,
+            xenon, freeze-in, freeze-out, annihilation, pbh, pbhs, relic, wdm,
+            ldm, sidm, lz, kev, halo, subhalo, subhalos, minihalos]
+particle_only_last: true
 
 similarity:
   method: tfidf                      # seam for swapping in embeddings later
@@ -165,4 +194,13 @@ site:
   base_url: /arXivly-atlas           # "" for a user/organization site or custom domain
   repo_url: "https://github.com/manns01/arXivly-atlas"   # used by the "unknown category" hint
   match_chars: 800                   # chars of abstract embedded per paper for in-browser filtering
-  max_papers_per_day: 200            # >= typical daily volume, so today is never truncated
+  max_papers_per_day: 100            # keep the newest 100 by arXiv id on a heavy day
+  max_authors_shown: 10              # cap the author list; over this -> "first 10 … +N more"
+
+  # --- page layout knobs (all have behaviour-preserving defaults) ---
+  compact_cards: true                # one-line paper rows; abstract/authors behind an expand
+  open_subjects: 3                   # subject sections open on load; the rest collapsed
+  open_clusters: 3                   # clusters open inside an open subject; the rest collapsed
+  default_window: today              # today | all -- initial state of the header window toggle
+  graph_default: map                 # map | papers -- the atlas view shown first
+  graph_labels: 20                   # max labelled nodes in the paper-level graph
