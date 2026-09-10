@@ -11,6 +11,16 @@ on:
     # primary already wrote data/raw/<date>.json this run just rebuilds from it.
     - cron: "23 7 * * 1-5"
   workflow_dispatch:
+  # External punctual trigger. GitHub's own `schedule` is best-effort and has
+  # been dropping this repo's runs, so an off-platform scheduler (cron-job.org)
+  # POSTs to the repo `dispatches` API each weekday morning:
+  #   curl -X POST -H "Authorization: Bearer <fine-grained PAT, Contents: write>" \
+  #        -H "Accept: application/vnd.github+json" \
+  #        https://api.github.com/repos/manns01/arXivly-atlas/dispatches \
+  #        -d '{"event_type":"daily-arxiv"}'
+  # The schedule crons above stay as a fallback.
+  repository_dispatch:
+    types: [daily-arxiv]
 
 # Don't let a slow run overlap the next one and race the git push.
 concurrency:
