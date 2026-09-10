@@ -17,6 +17,19 @@ AI features (summarizing, idea brainstorming).
 
 ## Status
 
+- **2026-09-10 (scheduled-run reliability)** — GitHub's built-in `schedule` dropped
+  this repo's runs: the `31 3 * * 1-5` primary never fired on Sep 9 or Sep 10, and the
+  Sep 9 backup ran ~5h late. Site was stuck on 2026-09-09. Fixes:
+  - Manually dispatched the build for 2026-09-10 (100 papers, live).
+  - Added `repository_dispatch: types: [daily-arxiv]` to `daily_arxiv.yml` so an
+    off-platform scheduler can trigger it punctually. Verified via
+    `gh api -X POST /repos/manns01/arXivly-atlas/dispatches -f event_type=daily-arxiv`
+    → full build + deploy. The two `schedule` crons stay as fallback.
+  - **TODO (user):** create a cron-job.org job — POST to
+    `https://api.github.com/repos/manns01/arXivly-atlas/dispatches`, body
+    `{"event_type":"daily-arxiv"}`, headers `Authorization: Bearer <fine-grained PAT,
+    Contents: write>` + `Accept: application/vnd.github+json`, weekdays ~03:40 UTC.
+
 - **2026-09-09 (researcher-friendly redesign)** — Plan:
   `~/.claude/plans/reactive-chasing-falcon.md` (Opus plan + Sonnet critic pass).
   Branch `redesign-tidy-page`. **95 unit tests pass.** Shipped:
