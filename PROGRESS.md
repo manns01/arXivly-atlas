@@ -25,10 +25,13 @@ AI features (summarizing, idea brainstorming).
     off-platform scheduler can trigger it punctually. Verified via
     `gh api -X POST /repos/manns01/arXivly-atlas/dispatches -f event_type=daily-arxiv`
     → full build + deploy. The two `schedule` crons stay as fallback.
-  - **TODO (user):** create a cron-job.org job — POST to
+  - **DONE:** cron-job.org job live — POST to
     `https://api.github.com/repos/manns01/arXivly-atlas/dispatches`, body
     `{"event_type":"daily-arxiv"}`, headers `Authorization: Bearer <fine-grained PAT,
-    Contents: write>` + `Accept: application/vnd.github+json`, weekdays ~03:40 UTC.
+    Contents: write>` + `Accept: application/vnd.github+json` + `X-GitHub-Api-Version:
+    2022-11-28`, weekdays 03:40 UTC (09:10 IST). Test run 2026-09-10 07:04 UTC → 204 →
+    build+deploy OK. PAT is fine-grained, `arXivly-atlas` only, Contents: write; set to
+    no expiration (rotate via Regenerate + update the cron-job.org header).
 
 - **2026-09-09 (researcher-friendly redesign)** — Plan:
   `~/.claude/plans/reactive-chasing-falcon.md` (Opus plan + Sonnet critic pass).
