@@ -87,7 +87,7 @@
     var nodes = m.nodes.map(function (n) { return Object.assign({}, n); });
     var links = (m.links || []).map(function (l) { return Object.assign({}, l); });
     var maxCount = d3.max(nodes, function (n) { return n.count || 1; }) || 1;
-    var rscale = d3.scaleSqrt().domain([1, maxCount]).range([10, 34]);
+    var rscale = d3.scaleSqrt().domain([1, maxCount]).range([7, 22]);
     return {
       kind: "map", nodes: nodes, links: links,
       radius: function (n) { return rscale(Math.max(1, n.count || 1)); },
@@ -167,9 +167,13 @@
 
     sim = d3.forceSimulation(D.nodes)
       .force("link", d3.forceLink(D.links).id(function (d) { return d.id; })
-        .distance(function (l) { return 40 + 60 * (1 - Math.min(1, l.weight || 0)); })
+        .distance(function (l) {
+          return kind === "map"
+            ? 200 + 180 * (1 - Math.min(1, l.weight || 0))
+            : 40 + 60 * (1 - Math.min(1, l.weight || 0));
+        })
         .strength(function (l) { return 0.2 + 0.6 * Math.min(1, l.weight || 0); }))
-      .force("charge", d3.forceManyBody().strength(kind === "map" ? -420 : -140))
+      .force("charge", d3.forceManyBody().strength(kind === "map" ? -700 : -140))
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("collide", d3.forceCollide().radius(function (d) { return D.radius(d) + 4; }))
       .on("tick", ticked);
@@ -230,6 +234,9 @@
         subj.scrollIntoView({ behavior: "smooth", block: "start" });
       }
       return;
+    }
+    if (window.atlasFilters && window.atlasFilters.ensureVisible) {
+      window.atlasFilters.ensureVisible(d.id);
     }
     var card = document.getElementById("paper-" + d.id);
     if (!card) return;

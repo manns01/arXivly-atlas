@@ -60,12 +60,14 @@
     "bin": 1, "ibn": 1, "ter": 1, "ten": 1, "st": 1
   };
 
+  var nodeById = {};
   nodes.forEach(function (n) {
     n._t = ((n.title || "").toLowerCase()) + " " + (n.text || "");
     n._au = (n.au ? String(n.au).split(";") : []).map(function (x) {
       var bar = x.indexOf("|");
       return bar < 0 ? ["", x] : [x.slice(0, bar), x.slice(bar + 1)];
     });
+    nodeById[n.id] = n;
   });
 
   // --- controls -----------------------------------------------------------
@@ -234,6 +236,8 @@
   }
 
   // --- apply ---------------------------------------------------------
+  var lastIds = null;    // the visible-id set from the most recent apply()
+
   function apply() {
     var s = readControls();
     var topicTerms = parseTerms(s.topics);
@@ -257,6 +261,7 @@
     });
 
     var narrowed = ids.size < nodes.length;
+    lastIds = narrowed ? ids : null;
 
     cards.forEach(function (card) {
       card.hidden = !ids.has(card.id.replace(/^paper-/, ""));
@@ -339,6 +344,23 @@
       warnEl.appendChild(a);
     }
   }
+
+  // The atlas graph can link to a paper that the current window excludes --
+  // e.g. a non-today neighbour of today's cluster shown in the "papers"
+  // view. Widen the window just enough to include it before graph.js
+  // scrolls to its (otherwise `hidden`) card. Only touches the window: other
+  // deliberately-set filters (topics, categories, ...) are left alone.
+  function ensureVisible(id) {
+    if (!lastIds || lastIds.has(id)) return false;
+    var s = readControls();
+    var winDays = allowedDays(s.win);
+    var n = nodeById[id];
+    if (!winDays || !n || winDays.has(n.first_pubdate)) return false;
+    writeControls(Object.assign({}, s, { win: "0" }));
+    apply();
+    return true;
+  }
+  window.atlasFilters = { ensureVisible: ensureVisible };
 
   // --- wiring --------------------------------------------------------
   var debounce;

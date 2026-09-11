@@ -17,6 +17,22 @@ AI features (summarizing, idea brainstorming).
 
 ## Status
 
+- **2026-09-11 (map graph spacing + graph->card click fix)**:
+  - Map view (`assets/graph.js`) was cramped -- few subject nodes with short
+    link distances (40-100px) and modest repulsion (-420) settled into a
+    tight knot with lots of dead canvas around it. Widened map-only link
+    distance to 200-380px, charge to -700, and shrank node radius range
+    34px->22px max so bubbles read as a spread-out map, not a packed clump.
+    Papers-view force params untouched.
+  - Clicking an atlas-graph node for a paper outside the current window
+    (e.g. a non-today neighbour of today's cluster) silently did nothing --
+    its card was `hidden` by the window filter and `onNodeClick` never
+    checked. `filters.js` now tracks the last applied visible-id set and
+    exposes `window.atlasFilters.ensureVisible(id)`, which widens the window
+    to "whole window" only when that's specifically what's hiding the id
+    (other active filters are left alone); `graph.js` calls it before
+    scrolling to the card.
+
 - **2026-09-11 (trigger timing fix)** — The 03:40 UTC cron-job.org trigger (set
   2026-09-10) consistently no-ops: it POSTs before arXiv's feed is ready, so
   `fetch_arxiv` sees the prior day's `data/raw/<date>.json` already built and
