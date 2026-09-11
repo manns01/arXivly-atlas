@@ -2,18 +2,20 @@ name: daily-arxiv
 
 on:
   schedule:
-    # Primary: 03:31 UTC (~09:01 IST), weekdays. arXiv announces at 00:00 UTC
-    # (01:00 UTC in winter) and its feeds settle within ~1-2h, so this has a
-    # safe margin year-round while still landing before a 9am read.
-    - cron: "31 3 * * 1-5"
-    # Backup: 07:23 UTC (~12:53 IST). Covers a primary run that GitHub delayed
+    # Primary: 06:00 UTC (~11:30 IST), weekdays. The RSS channel pubDate claims
+    # arXiv announces at 00:00 ET (04:00 UTC), but rss.arxiv.org's own feed
+    # generation lags that -- 2026-09-10 and 2026-09-11 both only had fresh
+    # content by ~05:40-05:49 UTC. 06:00 gives a small margin past both.
+    - cron: "0 6 * * 1-5"
+    # Backup: 06:30 UTC (~12:00 IST). Covers a primary run that GitHub delayed
     # past the feed or dropped entirely. fetch_arxiv is idempotent -- if the
     # primary already wrote data/raw/<date>.json this run just rebuilds from it.
-    - cron: "23 7 * * 1-5"
+    - cron: "30 6 * * 1-5"
   workflow_dispatch:
   # External punctual trigger. GitHub's own `schedule` is best-effort and has
   # been dropping this repo's runs, so an off-platform scheduler (cron-job.org)
-  # POSTs to the repo `dispatches` API each weekday morning:
+  # POSTs to the repo `dispatches` API each weekday morning at 06:00 and 06:30
+  # UTC (mirroring the schedule crons above):
   #   curl -X POST -H "Authorization: Bearer <fine-grained PAT, Contents: write>" \
   #        -H "Accept: application/vnd.github+json" \
   #        https://api.github.com/repos/manns01/arXivly-atlas/dispatches \

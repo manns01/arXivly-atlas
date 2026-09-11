@@ -17,6 +17,24 @@ AI features (summarizing, idea brainstorming).
 
 ## Status
 
+- **2026-09-11 (trigger timing fix)** — The 03:40 UTC cron-job.org trigger (set
+  2026-09-10) consistently no-ops: it POSTs before arXiv's feed is ready, so
+  `fetch_arxiv` sees the prior day's `data/raw/<date>.json` already built and
+  exits 0 with nothing new. RSS channel `pubDate` claims 00:00 ET (04:00 UTC)
+  but `rss.arxiv.org` itself lags that -- confirmed fresh content only landed
+  at 05:40 UTC (2026-09-10) and 05:49 UTC (2026-09-11), both via manual
+  `repository_dispatch`. Fix:
+  - Moved both `schedule` crons in `daily_arxiv.yml` to `0 6 * * 1-5` (06:00
+    UTC primary) and `30 6 * * 1-5` (06:30 UTC backup), ~11:30/12:00 IST --
+    small margin past the two observed data points.
+  - **TODO (user, external):** update the cron-job.org job to POST at 06:00
+    UTC, and add a second job at 06:30 UTC as a cheap safety net (a no-op run
+    costs ~30s and does nothing) instead of relying on GitHub's own
+    `schedule` trigger, which is the same unreliable mechanism that motivated
+    moving to cron-job.org in the first place.
+  - Only 2 days of data on the feed-ready time -- revisit 06:00 UTC if it
+    keeps no-op'ing.
+
 - **2026-09-10 (scheduled-run reliability)** — GitHub's built-in `schedule` dropped
   this repo's runs: the `31 3 * * 1-5` primary never fired on Sep 9 or Sep 10, and the
   Sep 9 backup ran ~5h late. Site was stuck on 2026-09-09. Fixes:
