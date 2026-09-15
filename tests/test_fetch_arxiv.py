@@ -208,7 +208,8 @@ class BuildDay(unittest.TestCase):
         self.assertEqual(day["pubdate"], "2026-09-07")
         self.assertEqual(day["schema_version"], 2)
         self.assertEqual(len(day["papers"]), N_AFTER_KEYWORDS)
-        # Papers are ordered newest-first by arXiv id (score no longer sorts).
+        # Final output is always ordered newest-first by arXiv id, regardless
+        # of which papers the score-based cap selected.
         ids = [p["id"] for p in day["papers"]]
         self.assertEqual(ids, sorted(ids, reverse=True))
 
@@ -217,7 +218,9 @@ class BuildDay(unittest.TestCase):
         day = build_day(load_parsed(), cfg)
         self.assertEqual(len(day["papers"]), 5)
 
-    def test_cap_keeps_newest_ids_regardless_of_score(self):
+    def test_cap_keeps_newest_ids_when_scores_tie(self):
+        # filter_mode: all with no keywords/authors -> every paper scores 0,
+        # so the cap degenerates to newest-by-id (its tiebreak).
         feeds = load_parsed()
         _, merged = merge_feeds(feeds, CATEGORIES, ["new", "cross"])
         all_ids = sorted((p["id"] for p in merged), reverse=True)
@@ -227,6 +230,30 @@ class BuildDay(unittest.TestCase):
         self.assertEqual(kept_ids, all_ids[:5])
         self.assertTrue(all(day["papers"][i]["id"] > day["papers"][i + 1]["id"]
                             for i in range(len(day["papers"]) - 1)))
+
+    def test_cap_keeps_highest_score_over_newer_unmatched_id(self):
+        # The oldest paper of the day (smallest arXiv id) is tagged with a
+        # keyword found nowhere else in the fixture; it must still survive a
+        # cap of 1 ahead of every newer, unscored paper. This guards against
+        # a relevant early-in-the-day paper losing its slot on a heavy day
+        # purely for having a smaller arXiv id than that day's other
+        # submissions.
+        feeds = load_parsed()
+        _, merged = merge_feeds(feeds, CATEGORIES, ["new", "cross"])
+        oldest_id = min(p["id"] for p in merged)
+        fake_kw = "zzz-unique-test-keyword-zzz"
+        for _, items in feeds:
+            for it in items:
+                if it["id"] == oldest_id:
+                    it["title"] = f"{fake_kw} {it['title']}"
+        cfg = {
+            **self.CONFIG,
+            "keywords": [fake_kw],
+            "filter_mode": "all",
+            "site": {"max_papers_per_day": 1},
+        }
+        day = build_day(feeds, cfg)
+        self.assertEqual([p["id"] for p in day["papers"]], [oldest_id])
 
     def test_zero_match_day_is_valid(self):
         cfg = {**self.CONFIG, "keywords": ["zzz-nonexistent-term-zzz"]}

@@ -207,13 +207,14 @@ def score_paper(item: dict, *, keywords: list[str], scoring: dict) -> float:
 
 
 def build_day(parsed_feeds: list[tuple[str, list[dict]]], config: dict) -> dict:
-    """Full pipeline: merge -> filter -> score -> sort newest-first -> truncate.
+    """Full pipeline: merge -> filter -> score -> truncate -> sort newest-first.
 
-    The cap keeps the *newest* ``max_papers_per_day`` by arXiv id (submission
-    order) -- the site shows "today only" by default and the owner would rather
-    lose the oldest submissions of a heavy day than see a 200-entry wall. Score
-    is still computed (it ranks graph labels downstream) but no longer decides
-    which papers survive the cap.
+    The cap keeps the *highest-scoring* ``max_papers_per_day`` papers, not just
+    the newest by arXiv id -- under ``filter_mode: all`` (whole archives) a
+    heavy day can have far more matches than the cap, and a paper that strongly
+    matches keywords/authors but was submitted early in the day should not lose
+    its spot to an unscored paper submitted later. Ties (score 0 is common
+    under ``filter_mode: all``) break by id, newest first.
     """
     site = config.get("site", {})
     pubdate, merged = merge_feeds(
@@ -231,10 +232,11 @@ def build_day(parsed_feeds: list[tuple[str, list[dict]]], config: dict) -> dict:
     scoring = config.get("scoring", {})
     for it in kept:
         it["score"] = score_paper(it, keywords=config.get("keywords", []), scoring=scoring)
-    # arXiv ids are YYMM.NNNNN, so a plain reverse string sort is newest-first.
-    kept.sort(key=lambda it: it["id"], reverse=True)
+    kept.sort(key=lambda it: (it["score"], it["id"]), reverse=True)
     max_papers = site.get("max_papers_per_day", 100)
     kept = kept[:max_papers]
+    # arXiv ids are YYMM.NNNNN, so a plain reverse string sort is newest-first.
+    kept.sort(key=lambda it: it["id"], reverse=True)
     return {
         "schema_version": SCHEMA_VERSION,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
